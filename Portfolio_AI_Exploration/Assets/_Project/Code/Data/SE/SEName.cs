@@ -1,6 +1,6 @@
-
+ï»¿
 /// <summary>
-/// SE‚Ì–¼‘O‚ÌEnum
+/// SEã®åå‰ã®Enum
 /// </summary>
 internal enum SEName
 {

@@ -1,72 +1,111 @@
+﻿using UnityEditor;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
+#region SceneObject
+/// <summary>
+/// Inspector上でシーンを設定できるラッパークラス
+/// 内部的にはシーン名（string）だけを保持する
+/// </summary>
 [System.Serializable]
 public class SceneObject
 {
-	[SerializeField]
-	private string m_SceneName;
+    #region 内部管理用変数
 
-	public static implicit operator string(SceneObject sceneObject)
-	{
-		return sceneObject.m_SceneName;
-	}
+    /// <summary>
+    /// 対象のシーン名
+    /// </summary>
+    [SerializeField, Tooltip("対象のシーン名")]
+    private string m_SceneName;
 
-	public static implicit operator SceneObject(string sceneName)
-	{
-		return new SceneObject() { m_SceneName = sceneName };
-	}
+    #endregion
+
+    #region 読み取り専用プロパティ
+
+    /// <summary>
+    /// 設定されているシーン名の取得
+    /// </summary>
+    public string SceneName => m_SceneName;
+
+    #endregion
+
+    #region 型変換（暗黙的変換）
+
+    /// <summary>
+    /// SceneObject → string に自動変換
+    /// </summary>
+    /// <param name="sceneObject">SceneObjectのインスタンス</param>
+    public static implicit operator string(SceneObject sceneObject) => sceneObject?.m_SceneName;
+
+    /// <summary>
+    /// string → SceneObject に自動変換
+    /// </summary>
+    /// <param name="sceneName">シーン名</param>
+    public static implicit operator SceneObject(string sceneName) => new SceneObject() { m_SceneName = sceneName };
+
+    #endregion
 }
+#endregion
 
 #if UNITY_EDITOR
+
+#region SceneObjectEditor
+/// <summary>
+/// SceneObjectのInspector表示をカスタマイズするPropertyDrawer
+/// Build Settings に登録されたシーンのみ選択可能にする
+/// </summary>
 [CustomPropertyDrawer(typeof(SceneObject))]
 public class SceneObjectEditor : PropertyDrawer
 {
-	protected SceneAsset GetSceneObject(string sceneObjectName)
-	{
-		if (string.IsNullOrEmpty(sceneObjectName))
-			return null;
+    #region Build SettingsからSceneAssetを取得
 
-		for (int i = 0; i < EditorBuildSettings.scenes.Length; i++)
-		{
-			EditorBuildSettingsScene scene = EditorBuildSettings.scenes[i];
-			if (scene.path.IndexOf(sceneObjectName) != -1)
-			{
-				return AssetDatabase.LoadAssetAtPath(scene.path, typeof(SceneAsset)) as SceneAsset;
-			}
-		}
+    /// <summary>
+    /// Build Settings に登録されたSceneAssetを取得
+    /// </summary>
+    /// <param name="sceneName">探すシーン名</param>
+    /// <returns>SceneAsset または null</returns>
+    private SceneAsset FindSceneAsset(string sceneName)
+    {
+        // シーン名が空の場合は null を返す
+        if (string.IsNullOrEmpty(sceneName)) return null;
 
-		DebugManager.Log("Scene [" + sceneObjectName + "] cannot be used. Add this scene to the 'Scenes in the Build' in the build settings.");
-		return null;
-	}
+        // Build Settings に登録されている全シーンを検索
+        foreach (var scene in EditorBuildSettings.scenes)
+        {
+            if (scene.path.Contains(sceneName))
+                return AssetDatabase.LoadAssetAtPath<SceneAsset>(scene.path);
+        }
 
-	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-	{
-		var sceneObj = GetSceneObject(property.FindPropertyRelative("m_SceneName").stringValue);
-		var newScene = EditorGUI.ObjectField(position, label, sceneObj, typeof(SceneAsset), false);
-		if (newScene == null)
-		{
-			var prop = property.FindPropertyRelative("m_SceneName");
-			prop.stringValue = "";
-		}
-		else
-		{
-			if (newScene.name != property.FindPropertyRelative("m_SceneName").stringValue)
-			{
-				var scnObj = GetSceneObject(newScene.name);
-				if (scnObj == null)
-				{
-					DebugManager.LogWarning("The scene " + newScene.name + " cannot be used. To use this scene add it to the build settings for the project.");
-				}
-				else
-				{
-					var prop = property.FindPropertyRelative("m_SceneName");
-					prop.stringValue = newScene.name;
-				}
-			}
-		}
-	}
+        // 見つからなければ警告
+        Debug.LogWarning($"Scene '{sceneName}' is not in Build Settings.");
+        return null;
+    }
+
+    #endregion
+
+    #region Inspector描画
+
+    /// <summary>
+    /// Inspector上にSceneObjectを描画する
+    /// </summary>
+    /// <param name="position">描画する位置とサイズ</param>
+    /// <param name="property">描画対象のSerializedProperty</param>
+    /// <param name="label">ラベル</param>
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        // SceneObject内部のシーン名を取得
+        var nameProp = property.FindPropertyRelative("m_SceneName");
+
+        // Build Settingsに登録されたSceneAssetを取得
+        var sceneAsset = FindSceneAsset(nameProp.stringValue);
+
+        // InspectorにSceneAsset選択フィールドを描画
+        var newScene = EditorGUI.ObjectField(position, label, sceneAsset, typeof(SceneAsset), false) as SceneAsset;
+
+        // 選択された場合は m_SceneName にセット、nullの場合は空文字に
+        nameProp.stringValue = newScene != null ? newScene.name : "";
+    }
+
+    #endregion
 }
+#endregion
 #endif
