@@ -29,7 +29,11 @@ public class SimpleMoveToGoal : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        agent.isStopped = false;
 
+        Debug.Log($"isOnNavMesh: {agent.isOnNavMesh}");
+        Debug.Log($"hasPath: {agent.hasPath}");
+        Debug.Log($"pathStatus: {agent.pathStatus}");
         if (target != null)
         {
             agent.SetDestination(target.position);
@@ -38,6 +42,12 @@ public class SimpleMoveToGoal : MonoBehaviour
 
     void Update()
     {
+        Debug.Log(
+    $"remaining: {agent.remainingDistance}, " +
+    $"stopping: {agent.stoppingDistance}, " +
+    $"hasPath: {agent.hasPath}, " +
+    $"isStopped: {agent.isStopped}"
+);
         // NavMeshAgent が目的地に「到達したか」を判定するための定番チェック
         // Update() や 移動中の処理内で使う想定
 
