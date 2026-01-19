@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
-
+using UnityEngine.SceneManagement;
 
 /*
  * SimpleMoveToGoal
@@ -24,7 +24,23 @@ public class SimpleMoveToGoal : MonoBehaviour
 {
     [SerializeField] private Transform target;
 
+    [Header("Planner Adjustable")]
+    [Tooltip("到達判定の余裕距離。プランナーが微調整可能")]
+    [SerializeField] private float arrivalThreshold = 0.05f;
+
     private NavMeshAgent agent;
+
+    private enum MoveState
+    {
+        Moving,
+        Arrived,
+        Blocked
+    }
+
+    private MoveState state;
+
+    // 直前の状態を保持して状態変化時のみログ出力
+    private MoveState previousState;
 
     void Start()
     {
@@ -34,6 +50,7 @@ public class SimpleMoveToGoal : MonoBehaviour
         Debug.Log($"isOnNavMesh: {agent.isOnNavMesh}");
         Debug.Log($"hasPath: {agent.hasPath}");
         Debug.Log($"pathStatus: {agent.pathStatus}");
+
         if (target != null)
         {
             agent.SetDestination(target.position);
@@ -42,61 +59,110 @@ public class SimpleMoveToGoal : MonoBehaviour
 
     void Update()
     {
-        Debug.Log(
-    $"remaining: {agent.remainingDistance}, " +
-    $"stopping: {agent.stoppingDistance}, " +
-    $"hasPath: {agent.hasPath}, " +
-    $"isStopped: {agent.isStopped}"
-);
-        // NavMeshAgent が目的地に「到達したか」を判定するための定番チェック
-        // Update() や 移動中の処理内で使う想定
+        UpdateState();
 
-        // pathPending:
-        // NavMeshAgent がまだ経路計算中かどうか
-        // true  = まだルートを計算している途中
-        // false = ルートが確定して、実際に移動している or 到達済み
-        if (!agent.pathPending &&
-
-            // remainingDistance:
-            // NavMesh上で「目的地まで残っている距離」
-            // stoppingDistance:
-            // ここまで近づいたら「到達した」とみなす距離
-            agent.remainingDistance <= agent.stoppingDistance)
+        // ---------------------------
+        // 状態に応じた処理
+        // ---------------------------
+        switch (state)
         {
-            // ここに来た = 「経路計算が終わっていて、目的地に十分近い」
+            case MoveState.Moving:
+                // 移動中処理
+                Debug.Log("State: Moving - 移動中");
+                break;
 
-            // 今回は簡易的に移動を停止しているが、
-            // 本番では State を Idle に変えたり、
-            // 到達イベントを発火させることが多い
-            agent.isStopped = true;
+            case MoveState.Arrived:
+                // 到達成功時の処理
+                Debug.Log("State: Arrived - 到達成功");
+                agent.isStopped = true; // 仮処理、本番では StateMachine で制御
+                break;
+
+            case MoveState.Blocked:
+                // 到達不能時の処理
+                Debug.Log("State: Blocked - 到達不能");
+                agent.isStopped = true; // 仮処理、本番では StateMachine で制御
+                break;
+        }
+
+        // ---------------------------
+        // デバッグ用ログ（状態変化時のみ出力）
+        // ---------------------------
+        if (state != previousState)
+        {
+            Debug.Log(
+                $"[Debug] State changed: {previousState} -> {state}, " +
+                $"RemainingDistance: {agent.remainingDistance}, " +
+                $"StoppingDistance: {agent.stoppingDistance}, " +
+                $"HasPath: {agent.hasPath}, " +
+                $"IsStopped: {agent.isStopped}"
+            );
+            previousState = state;
         }
     }
 
     /*
-なぜ remainingDistance だけで判定しないのか？
+     * UpdateState
+     *
+     * NavMeshAgent の状態を MoveState に変換
+     *
+     * pathPending:
+     * - NavMeshAgent がまだ経路計算中かどうか
+     * - true  = 計算中、false = 経路確定済み
+     *
+     * remainingDistance / stoppingDistance:
+     * - NavMesh上で「目的地まで残っている距離」をチェック
+     * - remainingDistance が 0 になった場合は到達済み
+     *
+     * 注意：
+     * - remainingDistance だけで判定しない
+     *   → 経路計算中は 0 になる場合がある
+     * - この到達判定は、移動→Idle、移動→Investigate、移動→次の行動
+     *   といった「状態遷移のトリガー」として使用
+     * - isStopped = true は仮処理、本番では StateMachine / BehaviorTree で制御
+     */
+    private void UpdateState()
+    {
+        // ---------------------------
+        // 経路計算中は Moving とする
+        // ---------------------------
+        if (agent.pathPending)
+        {
+            state = MoveState.Moving;
+            return;
+        }
 
-NavMeshAgent は、
-経路計算中（pathPending == true）の間、
-remainingDistance が 0 になることがある。
+        // ---------------------------
+        // 到達不能判定（Blocked）
+        // 経路計算後に hasPath が false の場合のみ
+        // ---------------------------
+        if (!agent.hasPath)
+        {
+            state = MoveState.Blocked;
+            return;
+        }
 
-そのため
-「remainingDistance <= stoppingDistance」だけを見ると
-まだ移動が始まっていないのに
-"到達した" と誤判定してしまう可能性がある。
+        // ---------------------------
+        // 到達成功判定（Arrived）
+        // remainingDistance が stoppingDistance + threshold 以下
+        // ---------------------------
+        if (agent.remainingDistance <= agent.stoppingDistance + arrivalThreshold)
+        {
+            state = MoveState.Arrived;
+            // 到達した対象が敵なら戦闘シーンへ
+            if (target != null && target.CompareTag("Enemy"))
+            {
+                Debug.Log("Enemy reached! Scene transition to BattleScene (仮)");
+                // 仮処理：マネージャ完成後に置き換え
+                SceneManager.LoadScene("BattleScene");
+            }
+            agent.isStopped = true; // 仮処理
 
-→ 必ず pathPending == false とセットで使う。
-*/
+            return;
+        }
 
-    /*
-この到達判定は、
-・移動 → 待機（Idle）
-・移動 → 調査（Investigate）
-・移動 → 次の行動
-といった「状態遷移のトリガー」として使う。
-
-isStopped = true 自体は仮の処理で、
-最終的には StateMachine や BehaviorTree 側で制御する。
-*/
-
+        // ---------------------------
+        // 移動中判定（Moving）
+        // ---------------------------
+        state = MoveState.Moving;
+    }
 }
-
