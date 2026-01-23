@@ -6,9 +6,17 @@ public class IdleState : BattleStateBase
 
     public override void Tick()
     {
-        if (owner.IsGaugeFull())
+
+        if (owner.ConsumeSkillInput())
         {
-            owner.ChangeState(owner.HoldState);
+            owner.ChangeState(owner.SkillState);
+            return;
         }
+        if (!owner.HasCurrentAction())
+        {
+            owner.SetCurrentAction(owner.GetDefaultAction());
+            owner.ChangeState(owner.GetStateForCurrentAction());
+        }
+
     }
 }

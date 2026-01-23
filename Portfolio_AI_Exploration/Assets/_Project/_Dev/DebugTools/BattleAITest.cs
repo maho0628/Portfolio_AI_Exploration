@@ -1,4 +1,7 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
+
+
 
 /// <summary>
 /// 戦闘AIのテスト用実装。
@@ -6,25 +9,49 @@ using UnityEngine;
 /// </summary>
 public class BattleAITest : BattleAI
 {
+    [SerializeField] private InputActionAsset inputActions;
+    private InputAction demoAction;
+
     protected override void Awake()
     {
         base.Awake();
         Debug.Log("BattleAI Test Awake");
+        Debug.Log($"[AI] Initial State = {currentState?.GetType().Name}");
+
+        demoAction = inputActions.FindAction("Skill"); // "Skill" は InputAction 名
+    }
+
+    private void OnEnable()
+    {
+        demoAction?.Enable();
+    }
+
+    protected override void Update()
+    {
+        if (demoAction != null && demoAction.IsPressed())
+        {
+            ReceivePlayerCommand(PlayerCommand.Skill);
+        }
+
+        base.Update();
+
+    }
+
+    private void OnDisable()
+    {
+        demoAction?.Disable();
     }
 
     // 仮入力用（後でPlayerInputControllerに置き換える）
+
     public override bool IsGaugeFull()
     {
-        return true; // 強制でHoldに行かせる
+        return true; // デモ用で常にHoldに行かせる
     }
 
-    public override bool HasSkillInput()
-    {
-        return Input.GetKeyDown(KeyCode.Space);
-    }
-
+   
     public override bool HasWaitInput()
     {
-        return Input.GetKeyDown(KeyCode.W);
+        return Input.GetKeyDown(KeyCode.W); // これは仮入力のまま
     }
 }
