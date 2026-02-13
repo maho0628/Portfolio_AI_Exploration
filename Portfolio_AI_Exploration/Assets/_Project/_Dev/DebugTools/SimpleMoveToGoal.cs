@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
@@ -149,12 +149,15 @@ public class SimpleMoveToGoal : MonoBehaviour
         {
             state = MoveState.Arrived;
             // 到達した対象が敵なら戦闘シーンへ
-            if (target != null && target.CompareTag("Enemy"))
+            if (target != null)
             {
-                Debug.Log("Enemy reached! Scene transition to BattleScene (仮)");
-                // 仮処理：マネージャ完成後に置き換え
-                SceneManager.LoadScene("BattleScene");
+                var interactTarget = target.GetComponent<InteractTarget>();
+                if (interactTarget != null)
+                {
+                    HandleArrive(interactTarget.role);
+                }
             }
+
             agent.isStopped = true; // 仮処理
 
             return;
@@ -164,5 +167,20 @@ public class SimpleMoveToGoal : MonoBehaviour
         // 移動中判定（Moving）
         // ---------------------------
         state = MoveState.Moving;
+    }
+    private void HandleArrive(InteractRole role)
+    {
+        switch (role)
+        {
+            case InteractRole.Enemy:
+                Debug.Log("Enemy reached → BattleScene");
+                SceneManager.LoadScene("BattleScene");
+                break;
+
+            case InteractRole.Goal:
+                Debug.Log("Goal reached → ResultScene");
+                SceneManager.LoadScene("ResultScene");
+                break;
+        }
     }
 }
