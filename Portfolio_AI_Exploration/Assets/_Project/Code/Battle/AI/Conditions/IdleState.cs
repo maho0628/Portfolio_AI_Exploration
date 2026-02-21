@@ -7,6 +7,12 @@ public class IdleState : BattleStateBase
     public override void Tick()
     {
 
+        if (owner.Blackboard.IsDead)
+        {
+            return;
+        }
+        
+
         if (owner.ConsumeSkillInput())
         {
             owner.ChangeState(owner.SkillState);

@@ -17,6 +17,8 @@ public enum PlayerCommand
 public abstract class BattleAI : MonoBehaviour
 {
     protected BattleStateBase currentState;
+    protected BattleBlackboard blackboard;
+    public BattleBlackboard Blackboard => blackboard;
 
     // Stateインスタンス
     protected IdleState idleState;
@@ -51,6 +53,10 @@ public abstract class BattleAI : MonoBehaviour
         attackState = new AttackState(this);
         skillState = new SkillState(this);      
         currentState = idleState;
+
+        //TODO:キャラステータスSO出来次第書き換え
+        blackboard = new BattleBlackboard(10);
+
     }
 
     protected virtual void Update()
@@ -93,7 +99,25 @@ public abstract class BattleAI : MonoBehaviour
         return false;
     }
 
+    public void SetTarget(BattleAI target)
+    {
+        blackboard.SetTarget(target);
+    }
 
+    public void TakeDamage(int amount)
+    {
+        blackboard.TakeDamage(amount);
+
+        if (blackboard.IsDead)
+        {
+            OnDeath();
+        }
+    }
+
+    protected virtual void OnDeath()
+    {
+        Debug.Log($"{name} is dead.");
+    }
 
     public virtual bool HasWaitInput()
     {
