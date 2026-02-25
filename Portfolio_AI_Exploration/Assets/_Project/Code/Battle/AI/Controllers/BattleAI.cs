@@ -1,5 +1,6 @@
-using Unity.IO.LowLevel.Unsafe;
-using Unity.VisualScripting;
+
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 
@@ -16,9 +17,12 @@ public enum PlayerCommand
 /// </summary>
 public abstract class BattleAI : MonoBehaviour
 {
+    [SerializeField] protected CharacterStatusSO status;
+    public List<SkillSO> skills = new List<SkillSO>();
     protected BattleStateBase currentState;
     protected BattleBlackboard blackboard;
     public BattleBlackboard Blackboard => blackboard;
+    private int skillIndex = 0;
 
     // Stateインスタンス
     protected IdleState idleState;
@@ -44,27 +48,85 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     private bool skillInputBuffered;
 
-
+    private bool isDead;
     protected virtual void Awake()
     {
         // Stateは一度だけ生成（使い捨てしない）
         idleState = new IdleState(this);
         holdState = new HoldState(this);
         attackState = new AttackState(this);
-        skillState = new SkillState(this);      
+        skillState = new SkillState(this);
         currentState = idleState;
+        blackboard = new BattleBlackboard(
+               status.MaxHP,
+               status.TPMax
+           );
+        Debug.Log($"HP:{blackboard.CurrentHP} TP:{blackboard.CurrentTP}");
+        skills = status.SkillLoop.ToList();
 
-        //TODO:キャラステータスSO出来次第書き換え
-        blackboard = new BattleBlackboard(10);
-
+        foreach (var skill in skills)
+        {
+            Debug.Log($"Skill:{skill.name} Type:{skill.skillType}");
+        }
     }
 
     protected virtual void Update()
     {
+        if (!isDead && blackboard.IsDead)
+        {
+            isDead = true;
+            OnDeath();
+            return; // ← ここ重要（死後は何もしない）
+        }
+
+        if (isDead)
+            return;
+
+
+       
 
         currentState.Tick();
     }
 
+
+    public void TryDecideSkill()
+    {
+        if (currentState == SkillState)
+            return;
+
+        SkillSO nextSkill = null;
+
+        // ① 手動UB（最優先）
+        bool manualUB = ConsumeSkillInput() && IsGaugeFull();
+
+        if (manualUB)
+        {
+            nextSkill = skills.First(s => s.skillType == SkillType.Ultimate);
+        }
+        // ② 自動UB
+        else if (IsGaugeFull())
+        {
+            nextSkill = skills.First(s => s.skillType == SkillType.Ultimate);
+        }
+        // ③ 通常スキルループ（Ultimateは飛ばす）
+        else
+        {
+            int safety = 0;
+            do
+            {
+                nextSkill = skills[skillIndex];
+                skillIndex = (skillIndex + 1) % skills.Count;
+                safety++;
+            }
+            while (nextSkill.skillType == SkillType.Ultimate && safety < skills.Count);
+        }
+
+        if (nextSkill == null)
+            return;
+
+        SkillState.SetSkill(nextSkill);
+        ChangeState(SkillState);
+    }
     /// <summary>
     /// Stateを切り替える唯一の窓口。
     /// State自身は直接他Stateを操作せず、
@@ -82,7 +144,7 @@ public abstract class BattleAI : MonoBehaviour
         {
             return;
         }
-        
+
 
         Debug.Log($"State Change: {currentState.GetType().Name} -> {nextState.GetType().Name}");
 
@@ -95,8 +157,7 @@ public abstract class BattleAI : MonoBehaviour
 
     public virtual bool IsGaugeFull()
     {
-        // 仮実装
-        return false;
+        return blackboard.CurrentTP >= status.TPMax;
     }
 
     public void SetTarget(BattleAI target)
@@ -108,15 +169,14 @@ public abstract class BattleAI : MonoBehaviour
     {
         blackboard.TakeDamage(amount);
 
-        if (blackboard.IsDead)
-        {
-            OnDeath();
-        }
+
     }
 
     protected virtual void OnDeath()
     {
         Debug.Log($"{name} is dead.");
+        Debug.Log($"IsDead{blackboard.IsDead}");
+        Debug.Log($"OnDeath called by {this}");
     }
 
     public virtual bool HasWaitInput()
@@ -127,6 +187,7 @@ public abstract class BattleAI : MonoBehaviour
     public void ExecuteSkill()
     {
         Debug.Log("Skill Executed");
+        blackboard.AddTP(SkillState.GetCurrentSkill().tpGainOnHit);
     }
 
     public bool HasCurrentAction()
@@ -185,7 +246,7 @@ public abstract class BattleAI : MonoBehaviour
         return new BattleAction
         {
             actionType = ActionType.Hold,
-            duration =10.0f
+            duration = 10.0f
         };
     }
 

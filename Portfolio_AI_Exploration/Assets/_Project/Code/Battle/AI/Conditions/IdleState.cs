@@ -4,6 +4,9 @@ public class IdleState : BattleStateBase
 {
     public IdleState(BattleAI owner) : base(owner) { }
 
+    public override void OnEnter()
+    {
+    }
     public override void Tick()
     {
 
@@ -11,7 +14,7 @@ public class IdleState : BattleStateBase
         {
             return;
         }
-        
+        owner.TryDecideSkill();
 
         if (owner.ConsumeSkillInput())
         {

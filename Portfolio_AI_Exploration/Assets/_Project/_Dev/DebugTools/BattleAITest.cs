@@ -37,7 +37,15 @@ public class BattleAITest : BattleAI
         
         if(Input.GetKeyDown(KeyCode.Escape)) 
         {
-            TakeDamage(10);
+            TakeDamage(1000);
+        }
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            Blackboard.AddTP(300);
+            Debug.Log($"TP: {Blackboard.CurrentTP}/{Blackboard.MaxTP}");
+            Debug.Log($"GaugeFull: {IsGaugeFull()}");
+
         }
         base.Update();
 
@@ -52,7 +60,7 @@ public class BattleAITest : BattleAI
 
     public override bool IsGaugeFull()
     {
-        return true; // デモ用で常にHoldに行かせる
+        return base.IsGaugeFull(); 
     }
 
    

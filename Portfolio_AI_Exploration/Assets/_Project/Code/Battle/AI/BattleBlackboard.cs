@@ -2,19 +2,23 @@ using UnityEngine;
 
 public class BattleBlackboard
 {
-    // 戦闘中の状態のみ保持
     public BattleAI Target { get; private set; }
 
     public int CurrentHP { get; private set; }
-    public int MaxHP { get; private set; }
+    public int CurrentTP { get; private set; }
+
+    public int MaxHP { get; }
+    public int MaxTP { get; }
 
     public bool IsDead => CurrentHP <= 0;
 
-    public BattleBlackboard(int maxHP)
+    public BattleBlackboard(int maxHP, int maxTP)
     {
         MaxHP = maxHP;
-        CurrentHP = maxHP;
-        Debug.Log(CurrentHP);
+        MaxTP = maxTP;
+
+        CurrentHP = MaxHP;
+        CurrentTP = 0;
     }
 
     public void SetTarget(BattleAI target)
@@ -24,16 +28,28 @@ public class BattleBlackboard
 
     public void TakeDamage(int amount)
     {
-        CurrentHP -= amount;
-        if (CurrentHP < 0)
-            CurrentHP = 0;
-        Debug.Log(CurrentHP);
+        CurrentHP = Mathf.Max(CurrentHP - amount, 0);
     }
 
     public void Heal(int amount)
     {
-        CurrentHP += amount;
-        if (CurrentHP > MaxHP)
-            CurrentHP = MaxHP;
+        CurrentHP = Mathf.Min(CurrentHP + amount, MaxHP);
+    }
+
+    public void AddTP(int amount)
+    {
+        if (CurrentTP >= MaxTP) return;
+        CurrentTP = Mathf.Min(CurrentTP + amount, MaxTP);
+        Debug.Log($"skills:{CurrentTP}");
+    }
+
+    public void ConsumeTP(int amount)
+    {
+        CurrentTP = Mathf.Max(CurrentTP - amount, 0);
+    }
+
+    public void ResetTP()
+    {
+        CurrentTP = 0;
     }
 }

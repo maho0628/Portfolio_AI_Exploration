@@ -1,27 +1,43 @@
 using UnityEngine;
-using static UnityEngine.UI.GridLayoutGroup;
 
 public class SkillState : BattleStateBase
 {
-    private bool executed;
+    //TODO:　実行するかどうかのフラグいらないかどうかの判断　いる場合はTickのIdle処理の条件を見直す
+    //private bool executed;
+    private SkillSO currentSkill;
+
+    private float timer;
 
     public SkillState(BattleAI owner) : base(owner) { }
 
+    public void SetSkill(SkillSO skill)
+    {
+        currentSkill = skill;
+    }
 
+    public SkillSO GetCurrentSkill()
+    {
+        return currentSkill;
+    }
     public override void OnEnter()
     {
-        executed = false;   
-
+        if (currentSkill.skillType == SkillType.Ultimate)
+        {
+            owner.Blackboard.ResetTP();
+        }
+        //executed = false;
+        Debug.Log($"Skill Start: {currentSkill.skillType}");
+        timer = 0.0f;
         Debug.Log("Skill Start");
         owner.ExecuteSkill();
-        executed = true;
+        //executed = true;
     }
 
     public override void Tick()
     {
-        if (executed)
+        timer += Time.deltaTime;
+        if (timer >= currentSkill.duration)
         {
-            Debug.Log("Skill End");
             owner.ChangeState(owner.IdleState);
         }
     }
