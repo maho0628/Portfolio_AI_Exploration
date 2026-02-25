@@ -758,8 +758,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1010245407}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.017922342, y: 0.908418, z: -0.039152056, w: 0.4158397}
-  m_LocalPosition: {x: -1.5025128, y: 5.004162, z: 0.011898266}
+  m_LocalRotation: {x: -0.017071739, y: -0.49310482, z: -0.009678839, w: 0.8697485}
+  m_LocalPosition: {x: -1.4963429, y: 5.0029182, z: -0.013601078}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1093,6 +1093,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be83caaa3f9776040be3c8b88b40dd45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  status: {fileID: 11400000, guid: 17a541f4ef8fd894a8ae6bb85ea76dd4, type: 2}
+  skills:
+  - {fileID: 11400000, guid: 46cac47c79cb63f40affa2e4ee663c7d, type: 2}
+  - {fileID: 11400000, guid: 56ee3e8d7b6c7d9418d76eb06a8dc85b, type: 2}
+  - {fileID: 11400000, guid: 398dd0f76f0dcb94bba664c0c438703f, type: 2}
   inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
 --- !u!1 &1967470680
 GameObject:
