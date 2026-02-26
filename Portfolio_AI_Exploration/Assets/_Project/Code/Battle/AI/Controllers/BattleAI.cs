@@ -61,13 +61,13 @@ public abstract class BattleAI : MonoBehaviour
                status.MaxHP,
                status.TPMax
            );
-        Debug.Log($"HP:{blackboard.CurrentHP} TP:{blackboard.CurrentTP}");
+        //Debug.Log($"HP:{blackboard.CurrentHP} TP:{blackboard.CurrentTP}");
         skills = status.SkillLoop.ToList();
 
-        foreach (var skill in skills)
-        {
-            Debug.Log($"Skill:{skill.name} Type:{skill.skillType}");
-        }
+        //foreach (var skill in skills)
+        //{
+        //    Debug.Log($"Skill:{skill.name} Type:{skill.skillType}");
+        //}
     }
 
     protected virtual void Update()
@@ -94,32 +94,39 @@ public abstract class BattleAI : MonoBehaviour
         if (currentState == SkillState)
             return;
 
+        // 🔥 まずUB条件だけを最優先で確定させる
+        bool hasManualInput = skillInputBuffered;
+        bool gaugeFull = IsGaugeFull();
+
+        Debug.Log($"[UB CHECK] TP:{Blackboard.CurrentTP}/{Blackboard.MaxTP} manual:{hasManualInput} full:{gaugeFull}");
+
+        if (gaugeFull)
+        {
+            var ultimate = skills.FirstOrDefault(s => s.skillType == SkillType.Ultimate);
+            if (ultimate != null)
+            {
+                // 手動があれば消費（なくても自動で出すならここでOK）
+                if (hasManualInput)
+                    skillInputBuffered = false;
+
+                SkillState.SetSkill(ultimate);
+                ChangeState(SkillState);
+                return; // ← ここ超重要。以降は絶対通さない
+            }
+        }
+
+        // ---- ここから下は通常スキルだけ ----
+
         SkillSO nextSkill = null;
 
-        // ① 手動UB（最優先）
-        bool manualUB = ConsumeSkillInput() && IsGaugeFull();
-
-        if (manualUB)
+        int safety = 0;
+        do
         {
-            nextSkill = skills.First(s => s.skillType == SkillType.Ultimate);
+            nextSkill = skills[skillIndex];
+            skillIndex = (skillIndex + 1) % skills.Count;
+            safety++;
         }
-        // ② 自動UB
-        else if (IsGaugeFull())
-        {
-            nextSkill = skills.First(s => s.skillType == SkillType.Ultimate);
-        }
-        // ③ 通常スキルループ（Ultimateは飛ばす）
-        else
-        {
-            int safety = 0;
-            do
-            {
-                nextSkill = skills[skillIndex];
-                skillIndex = (skillIndex + 1) % skills.Count;
-                safety++;
-            }
-            while (nextSkill.skillType == SkillType.Ultimate && safety < skills.Count);
-        }
+        while (nextSkill.skillType == SkillType.Ultimate && safety < skills.Count);
 
         if (nextSkill == null)
             return;
@@ -186,7 +193,7 @@ public abstract class BattleAI : MonoBehaviour
 
     public void ExecuteSkill()
     {
-        Debug.Log("Skill Executed");
+        //Debug.Log("Skill Executed");
         blackboard.AddTP(SkillState.GetCurrentSkill().tpGainOnHit);
     }
 
@@ -227,10 +234,14 @@ public abstract class BattleAI : MonoBehaviour
     }
     public void ReceivePlayerCommand(PlayerCommand command)
     {
+        Debug.Log("Receive frame: " + Time.frameCount);
+        Debug.Log($"Receive on: {this.GetInstanceID()}");
+        Debug.Log("ReceivePlayerCommand called");
         switch (command)
         {
             case PlayerCommand.Skill:
                 skillInputBuffered = true;
+                Debug.Log("skillInputBuffered = true");
                 break;
         }
     }

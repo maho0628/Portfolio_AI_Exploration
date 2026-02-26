@@ -28,11 +28,17 @@ public class BattleAITest : BattleAI
 
     protected override void Update()
     {
-        if (demoAction != null && demoAction.IsPressed())
+
+        // Refactor:スペースキーが反応しづらく検証しづらいので一時的にコメントアウトほかの挙動確認でき次第（インプットマネージャー製作次第修正予定
+        //if (demoAction != null && demoAction.IsPressed())
+        //{
+        //    ReceivePlayerCommand(PlayerCommand.Skill);
+        //}
+        
+        if(Input.GetKeyDown(KeyCode.Space)) 
         {
             ReceivePlayerCommand(PlayerCommand.Skill);
         }
-        
         //TODO:キャラステータスのSO作成次第書き換え
         
         if(Input.GetKeyDown(KeyCode.Escape)) 

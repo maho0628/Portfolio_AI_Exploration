@@ -17,7 +17,7 @@ MonoBehaviour:
   power: 2
   damageType: 0
   targetType: 1
-  tpGainOnHit: 10
+  tpGainOnHit: 300
   duration: 0
   animationName: 
   canBeInterrupted: 0
