@@ -14,18 +14,16 @@ public class IdleState : BattleStateBase
         {
             return;
         }
-        owner.TryDecideSkill();
 
-        if (owner.ConsumeSkillInput())
-        {
-            owner.ChangeState(owner.SkillState);
-            return;
-        }
         if (!owner.HasCurrentAction())
         {
-            owner.SetCurrentAction(owner.GetDefaultAction());
-            owner.ChangeState(owner.GetStateForCurrentAction());
+            owner.TryDecideSkill();
+            return;
+
         }
+        owner.SetCurrentAction(owner.GetDefaultAction());
+        owner.ChangeState(owner.GetStateForCurrentAction());
+
 
     }
 }

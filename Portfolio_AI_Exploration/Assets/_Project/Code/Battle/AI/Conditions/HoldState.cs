@@ -21,7 +21,7 @@ public class HoldState : BattleStateBase
 
             Debug.Log("[Hold] Interrupt: SkillInput");
             owner.ClearCurrentAction();
-            owner.ChangeState(owner.SkillState);
+            owner.ChangeState(owner.IdleState);
             return;
         }
 

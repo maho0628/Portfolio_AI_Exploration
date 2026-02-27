@@ -94,7 +94,7 @@ public abstract class BattleAI : MonoBehaviour
         if (currentState == SkillState)
             return;
 
-        // 🔥 まずUB条件だけを最優先で確定させる
+        //まずUB条件だけを最優先で確定させる
         bool hasManualInput = skillInputBuffered;
         bool gaugeFull = IsGaugeFull();
 
