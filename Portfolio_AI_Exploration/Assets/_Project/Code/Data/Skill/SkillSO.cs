@@ -6,8 +6,7 @@ public class SkillSO : ScriptableObject
 {
     public SkillType skillType;
 
-    [Header("Cost")]
-    public int tpCost;
+
 
     [Header("Power")]
     public int power;          // 威力倍率（例：100 = 100%）

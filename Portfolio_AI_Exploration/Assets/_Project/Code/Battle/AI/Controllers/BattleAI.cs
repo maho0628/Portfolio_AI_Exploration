@@ -232,11 +232,11 @@ public abstract class BattleAI : MonoBehaviour
         };
 
     }
-    public void ReceivePlayerCommand(PlayerCommand command)
+    public  virtual void ReceivePlayerCommand(PlayerCommand command)
     {
         Debug.Log("Receive frame: " + Time.frameCount);
         Debug.Log($"Receive on: {this.GetInstanceID()}");
-        Debug.Log("ReceivePlayerCommand called");
+        Debug.Log( $"{name}'s ReceivePlayerCommand called");
         switch (command)
         {
             case PlayerCommand.Skill:
