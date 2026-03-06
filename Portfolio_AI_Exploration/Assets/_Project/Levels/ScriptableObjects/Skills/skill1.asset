@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: skill1
   m_EditorClassIdentifier: 
   skillType: 1
-  tpCost: 0
-  power: 20
+  power: 100
   damageType: 0
   targetType: 1
   tpGainOnHit: 200

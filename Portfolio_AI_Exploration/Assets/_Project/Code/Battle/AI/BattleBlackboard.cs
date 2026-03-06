@@ -28,7 +28,11 @@ public class BattleBlackboard
 
     public void TakeDamage(int amount)
     {
+        if (IsDead) return;  
+
         CurrentHP = Mathf.Max(CurrentHP - amount, 0);
+        Debug.Log($"HP:{CurrentHP}/{MaxHP}");
+
     }
 
     public void Heal(int amount)

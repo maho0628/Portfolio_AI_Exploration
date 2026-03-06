@@ -23,7 +23,7 @@ public abstract class BattleAI : MonoBehaviour
     protected BattleBlackboard blackboard;
     public BattleBlackboard Blackboard => blackboard;
     private int skillIndex = 0;
-
+    [SerializeField] int MinimumDamage = 1;
     // Stateインスタンス
     protected IdleState idleState;
     protected HoldState holdState;
@@ -172,7 +172,23 @@ public abstract class BattleAI : MonoBehaviour
         blackboard.SetTarget(target);
     }
 
-    public void TakeDamage(int amount)
+    public void DealDamage(SkillSO skill)
+    {
+        if (Blackboard.Target == null) return;
+        if (Blackboard.Target.Blackboard.IsDead) return; 
+
+        int attack = status.PhysicalAttack;
+        int defense = Blackboard.Target.status.PhysicalDefense;
+
+        int scaled = attack * skill.power / 100;
+
+        //Refactor: ここシリアライズフィールドで書いてるけど将来データ駆動
+        int damage = Mathf.Max(MinimumDamage, scaled - defense);
+        Debug.Log($"{name} deals {damage} damage");
+
+        Blackboard.Target.TakeDamage(damage);
+    }
+    private void TakeDamage(int amount)
     {
         blackboard.TakeDamage(amount);
 

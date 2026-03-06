@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Ultimate
   m_EditorClassIdentifier: 
   skillType: 3
-  tpCost: 0
-  power: 30
+  power: 100
   damageType: 0
   targetType: 0
   tpGainOnHit: 0

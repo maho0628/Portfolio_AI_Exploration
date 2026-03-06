@@ -30,6 +30,8 @@ public class SkillState : BattleStateBase
         timer = 0.0f;
         Debug.Log("Skill Start");
         owner.ExecuteSkill();
+        owner.DealDamage(currentSkill);
+
         //executed = true;
     }
 

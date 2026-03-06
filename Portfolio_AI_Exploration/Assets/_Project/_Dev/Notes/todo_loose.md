@@ -29,3 +29,16 @@ NavMesh を採用した理由
   またアイテム収集システム実装するかどうか
   またそれを行うにはゴールを複数用意する必要あり
   探索パートStateMachine / BehaviorTree未対応
+
+## 　バグ発見
+[BUG]
+Enemy死亡後もState Change / Skill Startログが出る
+
+原因候補
+・StateMachineがUpdate外で動いている
+・Coroutine
+・AnimationEvent
+・SkillState起動
+
+優先度：低
+AIリファクタ時に対応

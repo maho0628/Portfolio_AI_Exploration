@@ -39,12 +39,7 @@ public class BattleAITest : BattleAI
         {
             ReceivePlayerCommand(PlayerCommand.Skill);
         }
-        //TODO:キャラステータスのSO作成次第書き換え
-        
-        if(Input.GetKeyDown(KeyCode.Escape)) 
-        {
-            TakeDamage(1000);
-        }
+       
 
         if (Input.GetKeyDown(KeyCode.T))
         {

@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: demo
   m_EditorClassIdentifier: 
   maxHP: 1000
-  physicalAttack: 0
+  physicalAttack: 50
   magicAttack: 0
-  physicalDefense: 0
+  physicalDefense: 5
   magicDefense: 0
   tpMax: 1000
   skillLoop:
