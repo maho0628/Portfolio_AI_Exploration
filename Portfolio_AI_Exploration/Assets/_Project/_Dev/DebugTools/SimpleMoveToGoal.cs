@@ -22,14 +22,14 @@ using UnityEngine.SceneManagement;
 
 public class SimpleMoveToGoal : MonoBehaviour
 {
-    [SerializeField] private Transform target;
-
+    [SerializeField] private ExplorationRoute route;
+    private int currentIndex = 0;
     [Header("Planner Adjustable")]
     [Tooltip("到達判定の余裕距離。プランナーが微調整可能")]
     [SerializeField] private float arrivalThreshold = 0.05f;
 
     private NavMeshAgent agent;
-
+    private bool hasArrivedHandled = false;
     private enum MoveState
     {
         Moving,
@@ -45,22 +45,24 @@ public class SimpleMoveToGoal : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        agent.isStopped = false;
+        currentIndex = ExplorationData.currentRouteIndex; // ←復元
 
+        transform.position = ExplorationData.playerPosition;
         Debug.Log($"isOnNavMesh: {agent.isOnNavMesh}");
         Debug.Log($"hasPath: {agent.hasPath}");
         Debug.Log($"pathStatus: {agent.pathStatus}");
 
-        if (target != null)
+        if (route != null && route.targets.Count > 0)
         {
-            agent.SetDestination(target.position);
+            agent.SetDestination(CurrentTarget.position);
         }
     }
 
     void Update()
     {
-        UpdateState();
+        if (CurrentTarget == null) return;
 
+        UpdateState();
         // ---------------------------
         // 状態に応じた処理
         // ---------------------------
@@ -74,7 +76,6 @@ public class SimpleMoveToGoal : MonoBehaviour
             case MoveState.Arrived:
                 // 到達成功時の処理
                 Debug.Log("State: Arrived - 到達成功");
-                agent.isStopped = true; // 仮処理、本番では StateMachine で制御
                 break;
 
             case MoveState.Blocked:
@@ -100,6 +101,20 @@ public class SimpleMoveToGoal : MonoBehaviour
         }
     }
 
+    private void MoveNext()
+    {
+        currentIndex++;
+        ExplorationData.currentRouteIndex = currentIndex; // ←保存
+
+        if (currentIndex >= route.targets.Count)
+        {
+            return;
+        }
+
+        agent.isStopped = false;
+        agent.SetDestination(CurrentTarget.position);
+        hasArrivedHandled = false;
+    }
     /*
      * UpdateState
      *
@@ -149,18 +164,10 @@ public class SimpleMoveToGoal : MonoBehaviour
         {
             state = MoveState.Arrived;
             // 到達した対象が敵なら戦闘シーンへ
-            if (target != null)
-            {
-                var interactTarget = target.GetComponent<InteractTarget>();
-                if (interactTarget != null)
-                {
-                    HandleArrive(interactTarget.role);
-                }
-            }
-
-            agent.isStopped = true; // 仮処理
+            HandleArrival();
 
             return;
+
         }
 
         // ---------------------------
@@ -168,12 +175,45 @@ public class SimpleMoveToGoal : MonoBehaviour
         // ---------------------------
         state = MoveState.Moving;
     }
+    private Transform CurrentTarget
+    {
+        get
+        {
+            if (route == null || route.targets == null || currentIndex >= route.targets.Count)
+                return null;
+
+            return route.targets[currentIndex];
+        }
+
+    }
+    private void HandleArrival()
+    {
+        if (hasArrivedHandled) return;
+
+        hasArrivedHandled = true;
+
+        Debug.Log("State: Arrived - 到達成功");
+
+        if (CurrentTarget != null)
+        {
+            var interactTarget = CurrentTarget.GetComponent<InteractTarget>();
+            if (interactTarget != null)
+            {
+                HandleArrive(interactTarget.role);
+            }
+        }
+
+        agent.isStopped = true;
+    }
     private void HandleArrive(InteractRole role)
     {
         switch (role)
         {
             case InteractRole.Enemy:
                 Debug.Log("Enemy reached → BattleScene");
+                ExplorationData.playerPosition = transform.position;
+                MoveNext(); 
+
                 SceneManager.LoadScene("BattleScene");
                 break;
 
@@ -183,4 +223,5 @@ public class SimpleMoveToGoal : MonoBehaviour
                 break;
         }
     }
+    
 }

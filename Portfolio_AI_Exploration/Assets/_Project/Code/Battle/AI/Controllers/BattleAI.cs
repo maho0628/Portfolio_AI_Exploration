@@ -250,12 +250,18 @@ public abstract class BattleAI : MonoBehaviour
     }
     public  virtual void ReceivePlayerCommand(PlayerCommand command)
     {
-        Debug.Log("Receive frame: " + Time.frameCount);
-        Debug.Log($"Receive on: {this.GetInstanceID()}");
+       
         Debug.Log( $"{name}'s ReceivePlayerCommand called");
         switch (command)
         {
             case PlayerCommand.Skill:
+                BattleResultData.interventionCount++;
+
+
+                if (currentState == idleState)
+                {
+                    BattleResultData.successCount++;
+                }
                 skillInputBuffered = true;
                 Debug.Log("skillInputBuffered = true");
                 break;
