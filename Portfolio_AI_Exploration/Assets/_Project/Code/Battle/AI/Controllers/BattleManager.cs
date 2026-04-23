@@ -12,11 +12,17 @@ public class BattleManager : MonoBehaviour
 
     void Start()
     {
-        battleEnded = false;   
+        battleEnded = false;
+        Debug.Log($"[Battle Start] Player HP: {player.Blackboard.CurrentHP}");
+        Debug.Log($"[Battle Start] Enemy  HP: {enemy.Blackboard.CurrentHP}");
+    
+    player.Initialize();
+        enemy.Initialize();
         BattleResultData.Reset();
         Debug.Log(BattleResultData.interventionCount.ToString());
         player.SetTarget(enemy);
         enemy.SetTarget(player);
+  
     }
 
     void Update()
@@ -34,31 +40,29 @@ public class BattleManager : MonoBehaviour
             return;
 
         }
-
+        Debug.Log($"[Check] PlayerDead: {player.Blackboard.IsDead} / EnemyDead: {enemy.Blackboard.IsDead}");
         if (enemy.Blackboard.IsDead)
         {
-            battleEnded = true;
-            EndBattle(true);
+            EndBattle(ResultType.Victory);
         }
         else if (player.Blackboard.IsDead)
         {
-            battleEnded = true;
-            EndBattle(false);
+            EndBattle(ResultType.Defeat);
         }
     }
 
-    void EndBattle(bool playerWin)
+    void EndBattle(ResultType resultType)
     {
-        if (battleEnded == false)
+        if (battleEnded)
         {
-            battleEnded = true;
-
+            return;
         }
 
-        BattleResultData.playerWin = playerWin;
+        battleEnded = true;
 
-        Debug.Log("Battle Finished");
-        Debug.Log("Player Win: " + playerWin);
+        BattleResultData.resultType = resultType;
+
+        Debug.Log($"Battle Finished : {resultType}");
 
         SceneManager.LoadScene("ResultScene");
     }

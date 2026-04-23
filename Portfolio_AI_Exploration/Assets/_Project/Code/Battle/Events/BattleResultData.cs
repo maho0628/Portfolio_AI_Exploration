@@ -2,15 +2,16 @@ using UnityEngine;
 
 public class BattleResultData
 {
-    public static bool playerWin;
+    public static ResultType resultType =ResultType.Defeat;
     public static int interventionCount;
     public static int successCount;
 
 
     public static void Reset()
     {
-        playerWin = false;
+        resultType = ResultType.Defeat;
         interventionCount = 0;
         successCount = 0;
+        Debug.Log($"ResultType Reset: {BattleResultData.resultType}");
     }
 }

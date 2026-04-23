@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
+using Cysharp.Threading.Tasks;
 
 /*
  * SimpleMoveToGoal
@@ -30,6 +31,8 @@ public class SimpleMoveToGoal : MonoBehaviour
 
     private NavMeshAgent agent;
     private bool hasArrivedHandled = false;
+
+    private bool hasStartedMoving = false;
     private enum MoveState
     {
         Moving,
@@ -42,19 +45,30 @@ public class SimpleMoveToGoal : MonoBehaviour
     // 直前の状態を保持して状態変化時のみログ出力
     private MoveState previousState;
 
-    void Start()
+    private async void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        currentIndex = ExplorationData.currentRouteIndex; // ←復元
 
-        transform.position = ExplorationData.playerPosition;
-        Debug.Log($"isOnNavMesh: {agent.isOnNavMesh}");
-        Debug.Log($"hasPath: {agent.hasPath}");
-        Debug.Log($"pathStatus: {agent.pathStatus}");
+        currentIndex = ExplorationData.currentRouteIndex;
 
-        if (route != null && route.targets.Count > 0)
+        agent.Warp(ExplorationData.playerPosition);
+        agent.ResetPath(); // ← これ超重要
+
+        await UniTask.Yield(); // ← これ
+
+        if (CurrentTarget != null)
         {
+            hasArrivedHandled = false;
+            agent.isStopped = false;
+            hasStartedMoving = false; // ←追加
+
             agent.SetDestination(CurrentTarget.position);
+
+            Debug.Log(ExplorationData.currentRouteIndex);
+
+            Debug.Log($"Next Target : {CurrentTarget.name}");
+            Debug.Log($"Player Pos  : {transform.position}");
+            Debug.Log($"Target Pos  : {CurrentTarget.position}");
         }
     }
 
@@ -101,20 +115,20 @@ public class SimpleMoveToGoal : MonoBehaviour
         }
     }
 
-    private void MoveNext()
-    {
-        currentIndex++;
-        ExplorationData.currentRouteIndex = currentIndex; // ←保存
+    //private void MoveNext()
+    //{
+    //    currentIndex++;
+    //    ExplorationData.currentRouteIndex = currentIndex; // ←保存
 
-        if (currentIndex >= route.targets.Count)
-        {
-            return;
-        }
+    //    if (currentIndex >= route.targets.Count)
+    //    {
+    //        return;
+    //    }
 
-        agent.isStopped = false;
-        agent.SetDestination(CurrentTarget.position);
-        hasArrivedHandled = false;
-    }
+    //    agent.isStopped = false;
+    //    agent.SetDestination(CurrentTarget.position);
+    //    hasArrivedHandled = false;
+    //}
     /*
      * UpdateState
      *
@@ -137,12 +151,28 @@ public class SimpleMoveToGoal : MonoBehaviour
      */
     private void UpdateState()
     {
+
+        // まだ移動開始してないなら判定しない
+        if (!hasStartedMoving)
+        {
+            if (!agent.pathPending && agent.hasPath)
+            {
+                hasStartedMoving = true;
+            }
+            return;
+        }
         // ---------------------------
         // 経路計算中は Moving とする
         // ---------------------------
         if (agent.pathPending)
         {
             state = MoveState.Moving;
+            return;
+        }
+
+
+        if (!agent.pathPending && agent.remainingDistance == Mathf.Infinity)
+        {
             return;
         }
 
@@ -212,16 +242,17 @@ public class SimpleMoveToGoal : MonoBehaviour
             case InteractRole.Enemy:
                 Debug.Log("Enemy reached → BattleScene");
                 ExplorationData.playerPosition = transform.position;
-                MoveNext(); 
 
                 SceneManager.LoadScene("BattleScene");
                 break;
 
             case InteractRole.Goal:
+                BattleResultData.resultType = ResultType.Goal;
+
                 Debug.Log("Goal reached → ResultScene");
                 SceneManager.LoadScene("ResultScene");
                 break;
         }
     }
-    
+
 }

@@ -1277,6 +1277,8 @@ MonoBehaviour:
   resultDataList:
   - {fileID: 11400000, guid: d1e5ced81112dd24ca8d575ce5d6e898, type: 2}
   - {fileID: 11400000, guid: b9a41a3b09b2179479428c35574c0bdf, type: 2}
+  - {fileID: 11400000, guid: acaf8102743d6c24291cde790fe63e6c, type: 2}
+  animationData: {fileID: 11400000, guid: 83c34341b02ed8944adcbaa749f5d301, type: 2}
   resultText: {fileID: 2096831159}
   interventionText: {fileID: 46534011}
   successRateText: {fileID: 1177150535}

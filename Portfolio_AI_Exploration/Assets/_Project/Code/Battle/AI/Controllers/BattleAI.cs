@@ -57,18 +57,32 @@ public abstract class BattleAI : MonoBehaviour
         attackState = new AttackState(this);
         skillState = new SkillState(this);
         currentState = idleState;
-        blackboard = new BattleBlackboard(
-               status.MaxHP,
-               status.TPMax
-           );
-        //Debug.Log($"HP:{blackboard.CurrentHP} TP:{blackboard.CurrentTP}");
+
+        Initialize();
         skills = status.SkillLoop.ToList();
+        //Debug.Log($"HP:{blackboard.CurrentHP} TP:{blackboard.CurrentTP}");
+
 
         //foreach (var skill in skills)
         //{
         //    Debug.Log($"Skill:{skill.name} Type:{skill.skillType}");
         //}
     }
+
+    public void Initialize()
+    {
+        blackboard = new BattleBlackboard(
+            status.MaxHP,
+            status.TPMax
+        );
+        Debug.LogWarning(status.MaxHP);
+        Debug.LogWarning(status.TPMax); 
+
+        isDead = false;
+    }
+
+   
+    
 
     protected virtual void Update()
     {
@@ -83,204 +97,204 @@ public abstract class BattleAI : MonoBehaviour
             return;
 
 
-       
+
 
         currentState.Tick();
     }
 
 
     public void TryDecideSkill()
+{
+    if (currentState == SkillState)
+        return;
+
+    //まずUB条件だけを最優先で確定させる
+    bool hasManualInput = skillInputBuffered;
+    bool gaugeFull = IsGaugeFull();
+
+    Debug.Log($"[UB CHECK] TP:{Blackboard.CurrentTP}/{Blackboard.MaxTP} manual:{hasManualInput} full:{gaugeFull}");
+
+    if (gaugeFull)
     {
-        if (currentState == SkillState)
-            return;
-
-        //まずUB条件だけを最優先で確定させる
-        bool hasManualInput = skillInputBuffered;
-        bool gaugeFull = IsGaugeFull();
-
-        Debug.Log($"[UB CHECK] TP:{Blackboard.CurrentTP}/{Blackboard.MaxTP} manual:{hasManualInput} full:{gaugeFull}");
-
-        if (gaugeFull)
+        var ultimate = skills.FirstOrDefault(s => s.skillType == SkillType.Ultimate);
+        if (ultimate != null)
         {
-            var ultimate = skills.FirstOrDefault(s => s.skillType == SkillType.Ultimate);
-            if (ultimate != null)
+            // 手動があれば消費（なくても自動で出すならここでOK）
+            if (hasManualInput)
+                skillInputBuffered = false;
+
+            SkillState.SetSkill(ultimate);
+            ChangeState(SkillState);
+            return; // ← ここ超重要。以降は絶対通さない
+        }
+    }
+
+    // ---- ここから下は通常スキルだけ ----
+
+    SkillSO nextSkill = null;
+
+    int safety = 0;
+    do
+    {
+        nextSkill = skills[skillIndex];
+        skillIndex = (skillIndex + 1) % skills.Count;
+        safety++;
+    }
+    while (nextSkill.skillType == SkillType.Ultimate && safety < skills.Count);
+
+    if (nextSkill == null)
+        return;
+
+    SkillState.SetSkill(nextSkill);
+    ChangeState(SkillState);
+}
+/// <summary>
+/// Stateを切り替える唯一の窓口。
+/// State自身は直接他Stateを操作せず、
+/// 必ず owner を通じて遷移を要求する。
+/// </summary>
+public virtual void ChangeState(BattleStateBase nextState)
+{
+    if (nextState == null)
+    {
+        Debug.LogError("ChangeState called with null");
+        return;
+    }
+
+    if (currentState == nextState)
+    {
+        return;
+    }
+
+
+    Debug.Log($"State Change: {currentState.GetType().Name} -> {nextState.GetType().Name}");
+
+    currentState.OnExit();
+    currentState = nextState;
+    currentState.OnEnter();
+}
+
+// ===== 以下は State から呼ばれる「能力」 =====
+
+public virtual bool IsGaugeFull()
+{
+    return blackboard.CurrentTP >= status.TPMax;
+}
+
+public void SetTarget(BattleAI target)
+{
+    blackboard.SetTarget(target);
+}
+
+public void DealDamage(SkillSO skill)
+{
+    if (Blackboard.Target == null) return;
+    if (Blackboard.Target.Blackboard.IsDead) return;
+
+    int attack = status.PhysicalAttack;
+    int defense = Blackboard.Target.status.PhysicalDefense;
+
+    int scaled = attack * skill.power / 100;
+
+    //Refactor: ここシリアライズフィールドで書いてるけど将来データ駆動
+    int damage = Mathf.Max(MinimumDamage, scaled - defense);
+    Debug.Log($"{name} deals {damage} damage");
+
+    Blackboard.Target.TakeDamage(damage);
+}
+private void TakeDamage(int amount)
+{
+    blackboard.TakeDamage(amount);
+
+
+}
+
+protected virtual void OnDeath()
+{
+    Debug.Log($"{name} is dead.");
+    Debug.Log($"IsDead{blackboard.IsDead}");
+    Debug.Log($"OnDeath called by {this}");
+}
+
+public virtual bool HasWaitInput()
+{
+    return false;
+}
+
+public void ExecuteSkill()
+{
+    //Debug.Log("Skill Executed");
+    blackboard.AddTP(SkillState.GetCurrentSkill().tpGainOnHit);
+}
+
+public bool HasCurrentAction()
+{
+    return currentAction != null;
+}
+
+public void SetCurrentAction(BattleAction action)
+{
+    currentAction = action;
+}
+
+public void ClearCurrentAction()
+{
+    currentAction = null;
+}
+
+
+public BattleStateBase GetStateForCurrentAction()
+{
+    if (currentAction == null)
+    {
+        return IdleState;
+
+    }
+
+    Debug.Log($"[AI] Action:{currentAction?.actionType}");
+
+    return currentAction.actionType switch
+    {
+        ActionType.Attack => AttackState,
+        ActionType.Hold => HoldState,
+        ActionType.Wait => IdleState, // Waitは何もしない＝IdleでOK
+        _ => IdleState
+    };
+
+}
+public virtual void ReceivePlayerCommand(PlayerCommand command)
+{
+
+    Debug.Log($"{name}'s ReceivePlayerCommand called");
+    switch (command)
+    {
+        case PlayerCommand.Skill:
+            BattleResultData.interventionCount++;
+
+
+            if (currentState == idleState)
             {
-                // 手動があれば消費（なくても自動で出すならここでOK）
-                if (hasManualInput)
-                    skillInputBuffered = false;
-
-                SkillState.SetSkill(ultimate);
-                ChangeState(SkillState);
-                return; // ← ここ超重要。以降は絶対通さない
+                BattleResultData.successCount++;
             }
-        }
-
-        // ---- ここから下は通常スキルだけ ----
-
-        SkillSO nextSkill = null;
-
-        int safety = 0;
-        do
-        {
-            nextSkill = skills[skillIndex];
-            skillIndex = (skillIndex + 1) % skills.Count;
-            safety++;
-        }
-        while (nextSkill.skillType == SkillType.Ultimate && safety < skills.Count);
-
-        if (nextSkill == null)
-            return;
-
-        SkillState.SetSkill(nextSkill);
-        ChangeState(SkillState);
+            skillInputBuffered = true;
+            Debug.Log("skillInputBuffered = true");
+            break;
     }
-    /// <summary>
-    /// Stateを切り替える唯一の窓口。
-    /// State自身は直接他Stateを操作せず、
-    /// 必ず owner を通じて遷移を要求する。
-    /// </summary>
-    public virtual void ChangeState(BattleStateBase nextState)
+}
+
+public bool ConsumeSkillInput()
+{
+    if (!skillInputBuffered) return false;
+    skillInputBuffered = false;
+    return true;
+}
+public virtual BattleAction GetDefaultAction()
+{
+    return new BattleAction
     {
-        if (nextState == null)
-        {
-            Debug.LogError("ChangeState called with null");
-            return;
-        }
-
-        if (currentState == nextState)
-        {
-            return;
-        }
-
-
-        Debug.Log($"State Change: {currentState.GetType().Name} -> {nextState.GetType().Name}");
-
-        currentState.OnExit();
-        currentState = nextState;
-        currentState.OnEnter();
-    }
-
-    // ===== 以下は State から呼ばれる「能力」 =====
-
-    public virtual bool IsGaugeFull()
-    {
-        return blackboard.CurrentTP >= status.TPMax;
-    }
-
-    public void SetTarget(BattleAI target)
-    {
-        blackboard.SetTarget(target);
-    }
-
-    public void DealDamage(SkillSO skill)
-    {
-        if (Blackboard.Target == null) return;
-        if (Blackboard.Target.Blackboard.IsDead) return; 
-
-        int attack = status.PhysicalAttack;
-        int defense = Blackboard.Target.status.PhysicalDefense;
-
-        int scaled = attack * skill.power / 100;
-
-        //Refactor: ここシリアライズフィールドで書いてるけど将来データ駆動
-        int damage = Mathf.Max(MinimumDamage, scaled - defense);
-        Debug.Log($"{name} deals {damage} damage");
-
-        Blackboard.Target.TakeDamage(damage);
-    }
-    private void TakeDamage(int amount)
-    {
-        blackboard.TakeDamage(amount);
-
-
-    }
-
-    protected virtual void OnDeath()
-    {
-        Debug.Log($"{name} is dead.");
-        Debug.Log($"IsDead{blackboard.IsDead}");
-        Debug.Log($"OnDeath called by {this}");
-    }
-
-    public virtual bool HasWaitInput()
-    {
-        return false;
-    }
-
-    public void ExecuteSkill()
-    {
-        //Debug.Log("Skill Executed");
-        blackboard.AddTP(SkillState.GetCurrentSkill().tpGainOnHit);
-    }
-
-    public bool HasCurrentAction()
-    {
-        return currentAction != null;
-    }
-
-    public void SetCurrentAction(BattleAction action)
-    {
-        currentAction = action;
-    }
-
-    public void ClearCurrentAction()
-    {
-        currentAction = null;
-    }
-
-
-    public BattleStateBase GetStateForCurrentAction()
-    {
-        if (currentAction == null)
-        {
-            return IdleState;
-
-        }
-
-        Debug.Log($"[AI] Action:{currentAction?.actionType}");
-
-        return currentAction.actionType switch
-        {
-            ActionType.Attack => AttackState,
-            ActionType.Hold => HoldState,
-            ActionType.Wait => IdleState, // Waitは何もしない＝IdleでOK
-            _ => IdleState
-        };
-
-    }
-    public  virtual void ReceivePlayerCommand(PlayerCommand command)
-    {
-       
-        Debug.Log( $"{name}'s ReceivePlayerCommand called");
-        switch (command)
-        {
-            case PlayerCommand.Skill:
-                BattleResultData.interventionCount++;
-
-
-                if (currentState == idleState)
-                {
-                    BattleResultData.successCount++;
-                }
-                skillInputBuffered = true;
-                Debug.Log("skillInputBuffered = true");
-                break;
-        }
-    }
-
-    public bool ConsumeSkillInput()
-    {
-        if (!skillInputBuffered) return false;
-        skillInputBuffered = false;
-        return true;
-    }
-    public virtual BattleAction GetDefaultAction()
-    {
-        return new BattleAction
-        {
-            actionType = ActionType.Hold,
-            duration = 10.0f
-        };
-    }
+        actionType = ActionType.Hold,
+        duration = 10.0f
+    };
+}
 
 }

@@ -9,9 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5f76edfd20765c4690a26ddc957b04e, type: 3}
-  m_Name: Defeat
+  m_Script: {fileID: 11500000, guid: 1254d99b68b4aec4ba0e9e2854daa08e, type: 3}
+  m_Name: New Result Animation Data 1
   m_EditorClassIdentifier: 
-  resultType: 0
-  resultText: Defeat
-  textColor: {r: 0, g: 0, b: 0, a: 1}
+  retryFadeDelay: 0.7
+  retryFadeDuration: 0.4
+  retryShrinkScale: 0.9
+  retryFadeEase: 6
+  titleAppearDelay: 0.3
+  titleAppearDuration: 0.35
+  titleAppearEase: 27

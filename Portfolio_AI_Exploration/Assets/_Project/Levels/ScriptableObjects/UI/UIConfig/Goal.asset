@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b5f76edfd20765c4690a26ddc957b04e, type: 3}
-  m_Name: Defeat
+  m_Name: Goal
   m_EditorClassIdentifier: 
-  resultType: 0
-  resultText: Defeat
+  resultType: 2
+  resultText: Goal
   textColor: {r: 0, g: 0, b: 0, a: 1}
