@@ -1,6 +1,6 @@
-
+ï»¿
 /// <summary>
-/// BGM‚Ì–¼‘O‚ÌEnum
+/// BGMã®åå‰ã®Enum
 /// </summary>
 internal enum BGMName
 {
