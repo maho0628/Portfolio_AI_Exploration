@@ -26,9 +26,9 @@ public class SkillState : BattleStateBase
             owner.Blackboard.ResetTP();
         }
         //executed = false;
-        Debug.Log($"Skill Start: {currentSkill.skillType}");
+        //Debug.Log($"Skill Start: {currentSkill.skillType}");
         timer = 0.0f;
-        Debug.Log("Skill Start");
+        //Debug.Log("Skill Start");
         owner.ExecuteSkill();
         owner.DealDamage(currentSkill);
 

@@ -12,15 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb894e4ca15f9a14abff18dff48efcc7, type: 3}
   m_Name: SceneTransitionSettings
   m_EditorClassIdentifier: 
-  simpleColorPrefab: {fileID: 0}
+  simpleColorPrefab: {fileID: 3285298533831491324, guid: 46a49698574e3bc458cf6d810876abac, type: 3}
   animatedPrefab: {fileID: 0}
   particlePrefab: {fileID: 0}
-  defaultFadeMode: 0
   fadeOutSettings:
     startAlpha: 0
     endAlpha: 1
-    speed: 1
+    fadeSpeed: 1
+    defaultFadeMode: 0
   fadeInSettings:
-    startAlpha: 0
-    endAlpha: 1
-    speed: 1
+    startAlpha: 1
+    endAlpha: 0
+    fadeSpeed: 1
+    defaultFadeMode: 0

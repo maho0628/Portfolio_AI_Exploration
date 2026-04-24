@@ -104,13 +104,13 @@ public class SimpleMoveToGoal : MonoBehaviour
         // ---------------------------
         if (state != previousState)
         {
-            Debug.Log(
-                $"[Debug] State changed: {previousState} -> {state}, " +
-                $"RemainingDistance: {agent.remainingDistance}, " +
-                $"StoppingDistance: {agent.stoppingDistance}, " +
-                $"HasPath: {agent.hasPath}, " +
-                $"IsStopped: {agent.isStopped}"
-            );
+            //Debug.Log(
+            //    $"[Debug] State changed: {previousState} -> {state}, " +
+            //    $"RemainingDistance: {agent.remainingDistance}, " +
+            //    $"StoppingDistance: {agent.stoppingDistance}, " +
+            //    $"HasPath: {agent.hasPath}, " +
+            //    $"IsStopped: {agent.isStopped}"
+            //);
             previousState = state;
         }
     }
@@ -218,6 +218,7 @@ public class SimpleMoveToGoal : MonoBehaviour
     }
     private void HandleArrival()
     {
+        if (SceneTransitionManager.Instance.IsTransitioning) return;
         if (hasArrivedHandled) return;
 
         hasArrivedHandled = true;
@@ -242,15 +243,15 @@ public class SimpleMoveToGoal : MonoBehaviour
             case InteractRole.Enemy:
                 Debug.Log("Enemy reached → BattleScene");
                 ExplorationData.playerPosition = transform.position;
-
-                SceneManager.LoadScene("BattleScene");
+                if (SceneTransitionManager.Instance.IsTransitioning) return;
+                SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
                 break;
 
             case InteractRole.Goal:
                 BattleResultData.resultType = ResultType.Goal;
-
+                if (SceneTransitionManager.Instance.IsTransitioning) return;
                 Debug.Log("Goal reached → ResultScene");
-                SceneManager.LoadScene("ResultScene");
+                SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
                 break;
         }
     }

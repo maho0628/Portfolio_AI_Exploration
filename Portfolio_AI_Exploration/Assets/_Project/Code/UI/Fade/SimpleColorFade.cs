@@ -18,17 +18,28 @@ public class SimpleColorFade : FadeControllerBase
 
     private async UniTask FadeCoroutineAsync(float start, float end, float speed)
     {
+        Debug.LogWarning($"fadeImage: {fadeImage}");
+        Debug.LogWarning($"active: {fadeImage.gameObject.activeInHierarchy}");
         Color color = fadeImage.color;
-        color.a = start;
-        fadeImage.color = color;
         fadeImage.gameObject.SetActive(true);
 
-        while (!Mathf.Approximately(color.a, end))
+        float t = 0f;
+
+        while (t < 1f)
         {
-            color.a = Mathf.MoveTowards(color.a, end, speed * Time.unscaledDeltaTime);
+            float delta = Time.unscaledDeltaTime;
+            if (delta <= 0f) delta = 0.016f;
+
+            t += delta * speed;
+            color.a = Mathf.Lerp(start, end, t);
             fadeImage.color = color;
+
             await UniTask.Yield();
         }
+
+        // 最終値保証
+        color.a = end;
+        fadeImage.color = color;
 
         if (Mathf.Approximately(end, 0f))
             fadeImage.gameObject.SetActive(false);

@@ -112,7 +112,7 @@ public abstract class BattleAI : MonoBehaviour
     bool hasManualInput = skillInputBuffered;
     bool gaugeFull = IsGaugeFull();
 
-    Debug.Log($"[UB CHECK] TP:{Blackboard.CurrentTP}/{Blackboard.MaxTP} manual:{hasManualInput} full:{gaugeFull}");
+    //Debug.Log($"[UB CHECK] TP:{Blackboard.CurrentTP}/{Blackboard.MaxTP} manual:{hasManualInput} full:{gaugeFull}");
 
     if (gaugeFull)
     {
@@ -167,7 +167,7 @@ public virtual void ChangeState(BattleStateBase nextState)
     }
 
 
-    Debug.Log($"State Change: {currentState.GetType().Name} -> {nextState.GetType().Name}");
+    //Debug.Log($"State Change: {currentState.GetType().Name} -> {nextState.GetType().Name}");
 
     currentState.OnExit();
     currentState = nextState;

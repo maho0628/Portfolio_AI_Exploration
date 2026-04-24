@@ -44,7 +44,7 @@ public class BattleBlackboard
     {
         if (CurrentTP >= MaxTP) return;
         CurrentTP = Mathf.Min(CurrentTP + amount, MaxTP);
-        Debug.Log($"skills:{CurrentTP}");
+        //Debug.Log($"skills:{CurrentTP}");
     }
 
     public void ConsumeTP(int amount)
