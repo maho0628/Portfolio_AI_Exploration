@@ -1082,6 +1082,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   route: {fileID: 1731794473}
   arrivalThreshold: 0.05
+  sceneMap: {fileID: 11400000, guid: 3f5378cdc9d35ad4dbd091cc4606a142, type: 2}
 --- !u!1 &1267492213
 GameObject:
   m_ObjectHideFlags: 0

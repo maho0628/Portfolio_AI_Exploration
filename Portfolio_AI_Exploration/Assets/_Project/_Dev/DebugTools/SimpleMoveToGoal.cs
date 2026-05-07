@@ -29,6 +29,9 @@ public class SimpleMoveToGoal : MonoBehaviour
     [Tooltip("到達判定の余裕距離。プランナーが微調整可能")]
     [SerializeField] private float arrivalThreshold = 0.05f;
 
+    [SerializeField] private SceneMap sceneMap; 
+
+
     private NavMeshAgent agent;
     private bool hasArrivedHandled = false;
 
@@ -251,7 +254,7 @@ public class SimpleMoveToGoal : MonoBehaviour
                 BattleResultData.resultType = ResultType.Goal;
                 if (SceneTransitionManager.Instance.IsTransitioning) return;
                 Debug.Log("Goal reached → ResultScene");
-                SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
+                SceneTransitionManager.Instance.TransitionTo(sceneMap.Get(SceneMap.SceneKey.Result));
                 break;
         }
     }

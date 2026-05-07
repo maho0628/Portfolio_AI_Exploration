@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Cysharp.Threading.Tasks;
+using static SceneMap;
 
 /// <summary>
 /// シーン遷移管理
@@ -48,6 +49,21 @@ public class SceneTransitionManager : SingletonMonoBehaviour<SceneTransitionMana
 
     #region Public API
 
+
+    public void TransitionTo(SceneObject target, FadeMode fadeMode = FadeMode.SimpleColor)
+    {
+        if (isTransitioning || target == null)
+            return;
+
+        TransitionToSceneAsync(target, fadeMode).Forget();
+    }
+
+    // （必要なら）キー版
+    public void TransitionTo(SceneMap map, SceneKey key, FadeMode fadeMode = FadeMode.SimpleColor)
+    {
+        var target = map.Get(key);
+        TransitionTo(target, fadeMode);
+    }
     /// <summary>
     /// 次のシーンへ遷移
     /// </summary>
@@ -139,7 +155,7 @@ public class SceneTransitionManager : SingletonMonoBehaviour<SceneTransitionMana
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"🔥 Exception: {e}");
+            Debug.Log($"🔥 Exception: {e}");
         }
         finally
         {

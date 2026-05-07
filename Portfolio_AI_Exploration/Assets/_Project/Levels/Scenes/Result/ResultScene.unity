@@ -1284,6 +1284,7 @@ MonoBehaviour:
   successRateText: {fileID: 1177150535}
   retryButton: {fileID: 1694427574}
   backToTitleButton: {fileID: 1002586009}
+  sceneMap: {fileID: 11400000, guid: 3f5378cdc9d35ad4dbd091cc4606a142, type: 2}
 --- !u!4 &1669699948
 Transform:
   m_ObjectHideFlags: 0

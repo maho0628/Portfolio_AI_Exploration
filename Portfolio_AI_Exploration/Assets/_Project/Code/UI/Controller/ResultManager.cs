@@ -23,6 +23,7 @@ public class ResultManager : MonoBehaviour
     [SerializeField] private Button backToTitleButton;
 
     private CanvasGroup retryCanvasGroup;
+    [SerializeField] private SceneMap sceneMap;
 
 
     private void Awake()
@@ -156,8 +157,9 @@ public class ResultManager : MonoBehaviour
 
 
 
-        //Refactor::シーン遷移マネージャーに書き換え
-        SceneManager.LoadScene("Exploration_Main");
+    
+
+        SceneTransitionManager.Instance.TransitionTo(sceneMap.Get(SceneMap.SceneKey.Exploration));
     }
 
 
@@ -167,8 +169,7 @@ public class ResultManager : MonoBehaviour
     {
         ExplorationData.playerPosition = Vector3.zero;
 
-        //Refactor::シーン遷移マネージャーに書き換え
 
-        SceneManager.LoadScene("TitleScene");
+        SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
     }
 }
