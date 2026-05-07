@@ -16,8 +16,8 @@ MonoBehaviour:
   power: 100
   damageType: 0
   targetType: 1
-  tpGainOnHit: 300
-  duration: 0
+  tpGainOnHit: 80
+  duration: 1.2
   animationName: 
   canBeInterrupted: 0
   canInterruptOthers: 0

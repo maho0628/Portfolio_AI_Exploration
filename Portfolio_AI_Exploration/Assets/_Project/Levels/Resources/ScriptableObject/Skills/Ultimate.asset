@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Ultimate
   m_EditorClassIdentifier: 
   skillType: 3
-  power: 100
+  power: 420
   damageType: 0
   targetType: 0
   tpGainOnHit: 0
-  duration: 0
+  duration: 3
   animationName: 
   canBeInterrupted: 0
   canInterruptOthers: 0
