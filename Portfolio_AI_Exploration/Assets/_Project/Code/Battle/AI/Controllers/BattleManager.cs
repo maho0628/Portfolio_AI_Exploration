@@ -5,20 +5,26 @@ public class BattleManager : MonoBehaviour
 {
     [SerializeField] private BattleAI player;
     [SerializeField] private BattleAI enemy;
-
     private bool battleEnded;
-
+    [SerializeField] private HPUIController hpUI;
     private GameState currentState = GameState.Battle;
+    private bool isBattleStarted = false;
 
     void Start()
     {
         battleEnded = false;
+
+        Debug.Log(player);
+        Debug.Log(enemy);
+        Debug.Log(hpUI);
+
         Debug.Log($"[Battle Start] Player HP: {player.Blackboard.CurrentHP}");
         Debug.Log($"[Battle Start] Enemy  HP: {enemy.Blackboard.CurrentHP}");
+      
+      
+        hpUI.Init(player, enemy);
 
 
-        player.Initialize();
-        enemy.Initialize();
         BattleResultData.Reset();
         Debug.Log(BattleResultData.interventionCount.ToString());
         player.SetTarget(enemy);
@@ -28,10 +34,19 @@ public class BattleManager : MonoBehaviour
 
     void Update()
     {
+        if (!isBattleStarted) return;
+
         if (currentState == GameState.Battle)
         {
             CheckBattleEnd();
         }
+    }
+
+    public void StartBattle()
+    {
+        isBattleStarted = true;
+        player.ActivateAI();
+        enemy.ActivateAI();
     }
 
     void CheckBattleEnd()
@@ -41,7 +56,6 @@ public class BattleManager : MonoBehaviour
             return;
 
         }
-        Debug.Log($"[Check] PlayerDead: {player.Blackboard.IsDead} / EnemyDead: {enemy.Blackboard.IsDead}");
         if (enemy.Blackboard.IsDead)
         {
             EndBattle(ResultType.Victory);
@@ -55,15 +69,15 @@ public class BattleManager : MonoBehaviour
     void EndBattle(ResultType resultType)
     {
 
-
-
-
-
         if (battleEnded)
         {
             Debug.Log("❌ すでに終了済み");
             return;
         }
+
+
+
+
         Debug.Log("✅ 初回EndBattle通過");
         battleEnded = true;
 
@@ -83,6 +97,8 @@ public class BattleManager : MonoBehaviour
 
         Debug.LogWarning($"Instance: {SceneTransitionManager.Instance}");
         Debug.LogWarning($"Scene: {SceneTransitionManager.Instance.gameObject.scene.name}");
+
+        //FIXME：フェードアリの自作のプログラムで動かすと連続でシーン遷移を行う際にシーン遷移をしなくなってしまうので一度コメントアウト
 
         SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
 
