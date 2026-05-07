@@ -15,14 +15,25 @@ public class IdleState : BattleStateBase
             return;
         }
 
+        // まずスキル試行
+        bool skillStarted = owner.TryDecideSkill();
+
+        if (skillStarted)
+        {
+            return;
+        }
+
+        // 通常行動
         if (!owner.HasCurrentAction())
         {
-            owner.TryDecideSkill();
-            return;
+            owner.SetCurrentAction(
+                owner.GetDefaultAction()
+            );
 
+            owner.ChangeState(
+                owner.GetStateForCurrentAction()
+            );
         }
-        owner.SetCurrentAction(owner.GetDefaultAction());
-        owner.ChangeState(owner.GetStateForCurrentAction());
 
 
     }

@@ -7,7 +7,7 @@ public class SkillState : BattleStateBase
     private SkillSO currentSkill;
 
     private float timer;
-
+    private bool executed;
     public SkillState(BattleAI owner) : base(owner) { }
 
     public void SetSkill(SkillSO skill)
@@ -21,16 +21,16 @@ public class SkillState : BattleStateBase
     }
     public override void OnEnter()
     {
+        executed = false;
+
+        timer = 0f;
         if (currentSkill.skillType == SkillType.Ultimate)
         {
             owner.Blackboard.ResetTP();
         }
         //executed = false;
         //Debug.Log($"Skill Start: {currentSkill.skillType}");
-        timer = 0.0f;
-        //Debug.Log("Skill Start");
-        owner.ExecuteSkill();
-        owner.DealDamage(currentSkill);
+        Debug.Log($"{owner.name} Skill Start");
 
         //executed = true;
     }
@@ -38,6 +38,17 @@ public class SkillState : BattleStateBase
     public override void Tick()
     {
         timer += Time.deltaTime;
+
+        // 途中で攻撃発生
+        if (!executed && timer >= currentSkill.duration * 0.5f)
+        {
+            executed = true;
+
+            owner.ExecuteSkill();
+            owner.DealDamage(currentSkill);
+        }
+
+        // 終了
         if (timer >= currentSkill.duration)
         {
             owner.ChangeState(owner.IdleState);

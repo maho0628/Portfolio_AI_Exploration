@@ -10,8 +10,7 @@ public class EnemyBattleAI : BattleAI
         if (Blackboard.IsDead)
             return;
 
-        // 敵は常にスキル判断を回す（UB含む）
-        TryDecideSkill();
+     
     }
 
     public override bool HasWaitInput()
