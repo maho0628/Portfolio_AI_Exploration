@@ -9,6 +9,7 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private HPUIController hpUI;
     private GameState currentState = GameState.Battle;
     private bool isBattleStarted = false;
+    [SerializeField] private UBGaugeUIController playerUBGauge;
 
     void Start()
     {
@@ -29,7 +30,7 @@ public class BattleManager : MonoBehaviour
         Debug.Log(BattleResultData.interventionCount.ToString());
         player.SetTarget(enemy);
         enemy.SetTarget(player);
-
+        playerUBGauge.Init(player); 
     }
 
     void Update()
@@ -98,7 +99,6 @@ public class BattleManager : MonoBehaviour
         Debug.LogWarning($"Instance: {SceneTransitionManager.Instance}");
         Debug.LogWarning($"Scene: {SceneTransitionManager.Instance.gameObject.scene.name}");
 
-        //FIXME：フェードアリの自作のプログラムで動かすと連続でシーン遷移を行う際にシーン遷移をしなくなってしまうので一度コメントアウト
 
         SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
 

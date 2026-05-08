@@ -16,6 +16,7 @@ public class BattleBlackboard
     public bool IsDead => CurrentHP <= 0;
 
     public event Action<BattleAI, int, int> OnHPChanged;
+    public event Action<int, int> OnTPChanged;
 
     public BattleBlackboard(BattleAI owner, int maxHP, int maxTP)
     {
@@ -54,19 +55,20 @@ public class BattleBlackboard
     {
         if (CurrentTP >= MaxTP) return;
         CurrentTP = Mathf.Min(CurrentTP + amount, MaxTP);
-        Debug.Log(
-    $"{owner.name} TP +{amount} / Current:{CurrentTP}"
-);
+        Debug.Log($"{owner.name} TP +{amount} / Current:{CurrentTP}");
+
+
+        //TPの数値変更を通知
+        OnTPChanged?.Invoke(CurrentTP, MaxTP);
         //Debug.Log($"skills:{CurrentTP}");
     }
 
-    public void ConsumeTP(int amount)
-    {
-        CurrentTP = Mathf.Max(CurrentTP - amount, 0);
-    }
 
+    /// UB使用時にTPを初期化
     public void ResetTP()
     {
         CurrentTP = 0;
+        //TPの数値変更を通知
+        OnTPChanged?.Invoke(CurrentTP, MaxTP);
     }
 }
