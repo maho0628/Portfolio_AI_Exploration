@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
+using DG.Tweening;
+using Cysharp.Threading.Tasks;
 
 public enum PlayerCommand
 {
@@ -19,6 +20,8 @@ public abstract class BattleAI : MonoBehaviour
 {
     [SerializeField] protected CharacterStatusSO status;
     public List<SkillSO> skills = new List<SkillSO>();
+
+    [SerializeField] private DamageEffectSettingsSO damageEffectSettings;
     protected BattleStateBase currentState;
     protected BattleBlackboard blackboard;
     public BattleBlackboard Blackboard => blackboard;
@@ -133,7 +136,7 @@ public abstract class BattleAI : MonoBehaviour
                 SkillState.SetSkill(ultimate);
                 Debug.Log($"{name} Change To SkillState");
                 ChangeState(SkillState);
-                return true ; // ← ここ超重要。以降は絶対通さない
+                return true; // ← ここ超重要。以降は絶対通さない
             }
         }
 
@@ -219,6 +222,8 @@ public abstract class BattleAI : MonoBehaviour
     private void TakeDamage(int amount)
     {
         blackboard.TakeDamage(amount);
+        PlayDamageReaction();
+
     }
 
     protected virtual void OnDeath()
@@ -257,7 +262,34 @@ public abstract class BattleAI : MonoBehaviour
         currentAction = null;
     }
 
+    private void PlayDamageReaction()
+    {
+        transform.DOShakePosition(
+          damageEffectSettings.shakeDuration,
+        new Vector3(
+            damageEffectSettings.shakeStrength,
+            0f,
+            0f
+        ),
+        damageEffectSettings.shakeVibrato
+  );
+        PlayHitStop().Forget();
 
+    }
+
+    private async UniTaskVoid PlayHitStop()
+    {
+        Time.timeScale = damageEffectSettings.hitStopScale;
+
+        await UniTask.Delay(
+            System.TimeSpan.FromSeconds(
+                damageEffectSettings.hitStopDuration
+            ),
+            ignoreTimeScale: true
+        );
+        Time.timeScale = 1f;
+
+    }
     public BattleStateBase GetStateForCurrentAction()
     {
         if (currentAction == null)
