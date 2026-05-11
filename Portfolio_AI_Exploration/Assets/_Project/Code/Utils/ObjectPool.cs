@@ -1,39 +1,57 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UIObjectPool<T> : MonoBehaviour where T : MonoBehaviour
-{
-    [SerializeField] private T prefab;
-    [SerializeField] private int preloadCount = 10;
+public class ObjectPool<T> : MonoBehaviour where T : MonoBehaviour
 
-    private readonly List<T> pool = new List<T>();
+{
+    [SerializeField]
+    private T prefab;
+
+    [SerializeField]
+    private int preloadCount = 10;
+
+    private readonly List<T> pool
+        = new List<T>();
 
     private void Awake()
     {
         for (int i = 0; i < preloadCount; i++)
         {
-            T instance = Instantiate(prefab, transform);
+            T instance = Instantiate(
+                prefab,
+                transform
+            );
+
             instance.gameObject.SetActive(false);
+
             pool.Add(instance);
         }
     }
 
     public T Get()
     {
-        // ”ñƒAƒNƒeƒBƒu‚ÈƒCƒ“ƒXƒ^ƒ“ƒX‚ð’T‚·
+        // éžã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’æŽ¢ã™
+
         foreach (var item in pool)
         {
             if (!item.gameObject.activeSelf)
             {
                 Prepare(item);
+
                 return item;
             }
         }
+        // ç©ºããŒãªã„ãªã‚‰æ–°ã—ãä½œã‚‹
 
-        // ‹ó‚«‚ª‚È‚¢‚È‚çV‚µ‚­ì‚é
-        T newItem = Instantiate(prefab, transform);
+        T newItem = Instantiate(
+            prefab,
+            transform
+        );
+
         pool.Add(newItem);
+
         Prepare(newItem);
+
         return newItem;
     }
 
@@ -41,21 +59,16 @@ public class UIObjectPool<T> : MonoBehaviour where T : MonoBehaviour
     {
         item.gameObject.SetActive(true);
 
-        if (item is IPoolable<T> poolAble)
+        if (item is IPoolable<T> poolable)
         {
-            poolAble.OnCreated(this);
+            poolable.OnCreated(this);
         }
-
-        //if (item is IUIEffectPoolable<T> uiEffectPoolAble)
-        //{
-        //    uiEffectPoolAble.OnCreated(this);
-        //}
-
     }
 
     public void Return(T item)
     {
         item.gameObject.SetActive(false);
-        DebugManager.Log($"Returning to pool: {typeof(T).Name}, Current count: {pool.Count}");
     }
 }
+
+

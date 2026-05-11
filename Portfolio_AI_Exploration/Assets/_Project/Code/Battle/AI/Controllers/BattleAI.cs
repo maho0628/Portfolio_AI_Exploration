@@ -46,6 +46,9 @@ public abstract class BattleAI : MonoBehaviour
     private bool isActive = false;
     public SkillState SkillState => skillState;
     protected bool isInitialized = false;
+
+    [SerializeField]
+    private DamageTextPool damageTextPool;
     /// <summary>
     /// skill入力バッファフラグ
     /// </summary>
@@ -222,10 +225,21 @@ public abstract class BattleAI : MonoBehaviour
     private void TakeDamage(int amount)
     {
         blackboard.TakeDamage(amount);
+        PlayDamageText(amount);
+
         PlayDamageReaction();
-
     }
+    private void PlayDamageText(int damage)
+    {
+        if (damageTextPool == null)
+            return;
 
+        var text = damageTextPool.Get();
+
+        text.transform.position = transform.position;
+
+        text.Play(damage);
+    }
     protected virtual void OnDeath()
     {
         Debug.Log($"{name} is dead.");
@@ -241,10 +255,13 @@ public abstract class BattleAI : MonoBehaviour
     {
         isActive = true;
     }
-    public void ExecuteSkill()
+    public virtual void ExecuteSkill()
     {
-        //Debug.Log("Skill Executed");
-        blackboard.AddTP(SkillState.GetCurrentSkill().tpGainOnHit);
+        blackboard.AddTP(
+          SkillState.GetCurrentSkill()
+          .tpGainOnHit
+      );
+
     }
 
     public bool HasCurrentAction()
@@ -274,8 +291,9 @@ public abstract class BattleAI : MonoBehaviour
         damageEffectSettings.shakeVibrato
   );
         PlayHitStop().Forget();
-
     }
+
+
 
     private async UniTaskVoid PlayHitStop()
     {

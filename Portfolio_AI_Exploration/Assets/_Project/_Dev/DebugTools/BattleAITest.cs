@@ -10,6 +10,8 @@ using UnityEngine.InputSystem;
 public class BattleAITest : BattleAI
 {
     [SerializeField] private InputActionAsset inputActions;
+    [SerializeField]
+    private TPTextPool tpTextPool;
     private InputAction demoAction;
 
     protected override void Awake()
@@ -34,12 +36,12 @@ public class BattleAITest : BattleAI
         //{
         //    ReceivePlayerCommand(PlayerCommand.Skill);
         //}
-        
-        if(Input.GetKeyDown(KeyCode.Space)) 
+
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             ReceivePlayerCommand(PlayerCommand.Skill);
         }
-       
+
 
         if (Input.GetKeyDown(KeyCode.T))
         {
@@ -61,10 +63,33 @@ public class BattleAITest : BattleAI
 
     public override bool IsGaugeFull()
     {
-        return base.IsGaugeFull(); 
+        return base.IsGaugeFull();
     }
 
-   
+    public override void ExecuteSkill()
+    {
+        base.ExecuteSkill();
+
+        int tpGain =
+            SkillState.GetCurrentSkill()
+            .tpGainOnHit;
+
+        ShowTPGain(tpGain);
+    }
+
+    private void ShowTPGain(int amount)
+    {
+
+        if (tpTextPool == null)
+            return;
+
+        var text = tpTextPool.Get();
+
+        text.transform.position = transform.position;
+
+        text.Play(amount);
+    }
+
     public override bool HasWaitInput()
     {
         return Input.GetKeyDown(KeyCode.W); // これは仮入力のまま
