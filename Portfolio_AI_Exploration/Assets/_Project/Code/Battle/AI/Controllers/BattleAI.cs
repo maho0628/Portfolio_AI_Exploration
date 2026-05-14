@@ -49,7 +49,9 @@ public abstract class BattleAI : MonoBehaviour
 
     [SerializeField]
     private DamageTextPool damageTextPool;
-    /// <summary>
+
+    [SerializeField]
+    private UltimatePresentationController ultimatePresentation;
     /// skill入力バッファフラグ
     /// </summary>
     private bool skillInputBuffered;
@@ -135,7 +137,7 @@ public abstract class BattleAI : MonoBehaviour
                 // 手動があれば消費（なくても自動で出すならここでOK）
                 if (hasManualInput)
                     skillInputBuffered = false;
-
+                ultimatePresentation.Play().Forget();
                 SkillState.SetSkill(ultimate);
                 Debug.Log($"{name} Change To SkillState");
                 ChangeState(SkillState);
