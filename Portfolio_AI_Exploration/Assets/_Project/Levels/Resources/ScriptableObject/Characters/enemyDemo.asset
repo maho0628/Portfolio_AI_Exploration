@@ -15,10 +15,10 @@ MonoBehaviour:
   maxHP: 2200
   physicalAttack: 22
   magicAttack: 5
-  physicalDefense: 5
+  physicalDefense: 1
   magicDefense: 5
   tpMax: 1000
   skillLoop:
-  - {fileID: 11400000, guid: 46cac47c79cb63f40affa2e4ee663c7d, type: 2}
-  - {fileID: 11400000, guid: 56ee3e8d7b6c7d9418d76eb06a8dc85b, type: 2}
-  - {fileID: 11400000, guid: 398dd0f76f0dcb94bba664c0c438703f, type: 2}
+  - {fileID: 11400000, guid: 8e4ae2408057ecd4bb1520ac1961fc74, type: 2}
+  - {fileID: 11400000, guid: 2dbef69279443784abb948120c66fbfc, type: 2}
+  - {fileID: 11400000, guid: c1c532b024223094fa19a88b41c46008, type: 2}

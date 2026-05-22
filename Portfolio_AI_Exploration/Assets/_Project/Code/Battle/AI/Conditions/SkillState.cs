@@ -37,6 +37,8 @@ public class SkillState : BattleStateBase
 
     public override void Tick()
     {
+        if (owner.Blackboard.IsDead) return;
+
         timer += Time.deltaTime;
 
         // 途中で攻撃発生
@@ -45,12 +47,15 @@ public class SkillState : BattleStateBase
             executed = true;
 
             owner.ExecuteSkill();
+
             owner.DealDamage(currentSkill);
         }
 
         // 終了
         if (timer >= currentSkill.duration)
         {
+            owner.ResetUltimateLock();
+
             owner.ChangeState(owner.IdleState);
         }
     }

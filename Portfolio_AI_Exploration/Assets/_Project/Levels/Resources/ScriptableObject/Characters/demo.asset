@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f49c7533faf11d74a8312680416b19ee, type: 3}
   m_Name: demo
   m_EditorClassIdentifier: 
-  maxHP: 1800
-  physicalAttack: 18
+  maxHP: 500
+  physicalAttack: 63
   magicAttack: 0
-  physicalDefense: 5
+  physicalDefense: 1
   magicDefense: 0
   tpMax: 1000
   skillLoop:

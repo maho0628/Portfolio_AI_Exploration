@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 
 
@@ -28,6 +29,14 @@ public class BattleAITest : BattleAI
         demoAction?.Enable();
     }
 
+
+    internal override void TakeDamage(int amount)
+    {
+        base.TakeDamage(amount);
+        AudioManager.Instance.PlaySEById(SEName.PlayerHit);
+
+    }
+
     protected override void Update()
     {
 
@@ -37,19 +46,19 @@ public class BattleAITest : BattleAI
         //    ReceivePlayerCommand(PlayerCommand.Skill);
         //}
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Mouse0))
         {
             ReceivePlayerCommand(PlayerCommand.Skill);
         }
 
 
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            Blackboard.AddTP(300);
-            Debug.Log($"TP: {Blackboard.CurrentTP}/{Blackboard.MaxTP}");
-            Debug.Log($"GaugeFull: {IsGaugeFull()}");
+        //if (Input.GetKeyDown(KeyCode.T))
+        //{
+        //    Blackboard.AddTP(300);
+        //    Debug.Log($"TP: {Blackboard.CurrentTP}/{Blackboard.MaxTP}");
+        //    Debug.Log($"GaugeFull: {IsGaugeFull()}");
 
-        }
+        //}
         base.Update();
 
     }
@@ -90,6 +99,12 @@ public class BattleAITest : BattleAI
         text.Play(amount);
     }
 
+    protected override void OnDeath()
+    {
+        base.OnDeath();
+        AudioManager.Instance.PlaySEById(SEName.PlayerDeath);
+
+    }
     public override bool HasWaitInput()
     {
         return Input.GetKeyDown(KeyCode.W); // これは仮入力のまま

@@ -2,20 +2,23 @@ using UnityEngine;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-public class UltimatePresentationController
-    : MonoBehaviour
+
+public class UltimatePresentationController : MonoBehaviour
 {
-    [SerializeField]
-    private Image darkPanel;
+    [SerializeField] private Image darkPanel;
+    [SerializeField] private Image whiteFlash;
+    [SerializeField] private UltimatePresentationSettingsSO settings;
+    [SerializeField] private Animator animator;
 
-    [SerializeField]
-    private Image whiteFlash;
+    private bool isPlaying;
+    private static int slowRefCount;
 
-    [SerializeField]
-    private UltimatePresentationSettingsSO settings;
 
     public async UniTask Play()
     {
+        if (isPlaying) return;
+        isPlaying = true;
+
         darkPanel.gameObject.SetActive(true);
 
         Color dark = darkPanel.color;
@@ -23,22 +26,32 @@ public class UltimatePresentationController
         darkPanel.color = dark;
 
         await darkPanel
-            .DOFade(
-                0.7f,
-                settings.darkFadeDuration
-            )
+            .DOFade(0.7f, settings.darkFadeDuration)
             .ToUniTask();
 
-        Time.timeScale = settings.slowScale;
+        if (animator != null)
+        {
+            animator.SetTrigger("Ultimate");
+        }
+        if (slowRefCount == 0)
+        {
+            Time.timeScale = settings.slowScale;
+        }
+
+        slowRefCount++;
 
         await UniTask.Delay(
-            System.TimeSpan.FromSeconds(
-                settings.slowDuration
-            ),
+            System.TimeSpan.FromSeconds(settings.slowDuration),
             ignoreTimeScale: true
         );
 
-        Time.timeScale = 1f;
+        slowRefCount--;
+
+        if (slowRefCount <= 0)
+        {
+            Time.timeScale = 1f;
+            slowRefCount = 0;
+        }
 
         whiteFlash.gameObject.SetActive(true);
 
@@ -47,13 +60,12 @@ public class UltimatePresentationController
         whiteFlash.color = flash;
 
         await whiteFlash
-            .DOFade(
-                0f,
-                settings.whiteFlashDuration
-            )
+            .DOFade(0f, settings.whiteFlashDuration)
             .ToUniTask();
 
         darkPanel.gameObject.SetActive(false);
         whiteFlash.gameObject.SetActive(false);
+
+        isPlaying = false;
     }
 }

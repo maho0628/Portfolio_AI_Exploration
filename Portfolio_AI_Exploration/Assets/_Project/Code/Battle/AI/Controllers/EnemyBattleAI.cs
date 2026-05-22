@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 
 
@@ -10,7 +11,7 @@ public class EnemyBattleAI : BattleAI
         if (Blackboard.IsDead)
             return;
 
-     
+
     }
 
     public override bool HasWaitInput()
@@ -18,6 +19,38 @@ public class EnemyBattleAI : BattleAI
         return false; // 敵は待たない
     }
 
+    internal override void PlayDamageReaction()
+    {
+        base.PlayDamageReaction();
+
+        var enemySettings =
+          damageEffectSettings
+          as EnemyDamageEffectSettingsSO;
+
+        transform.DOMoveX(
+    transform.position.x
+        - enemySettings.knockbackDistance,
+
+    enemySettings.knockbackDuration
+)
+.SetEase(enemySettings.knockbackEase)
+.SetLoops(
+    enemySettings.knockbackLoops,
+    LoopType.Yoyo
+);
+    }
+
+    internal override void TakeDamage(int amount)
+    {
+        base.TakeDamage(amount);
+        AudioManager.Instance.PlaySEById(SEName.EnemyHit);
+
+    }
+    protected override void OnDeath()
+    {
+        base.OnDeath();
+        AudioManager.Instance.PlaySEById(SEName.EnemyDeath);    
+    }
     public override void ReceivePlayerCommand(PlayerCommand command)
     {
         Debug.LogError("Enemy received input!?");

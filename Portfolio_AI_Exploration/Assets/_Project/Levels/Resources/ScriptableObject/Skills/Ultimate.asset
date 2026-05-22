@@ -17,7 +17,7 @@ MonoBehaviour:
   damageType: 0
   targetType: 0
   tpGainOnHit: 0
-  duration: 3
+  duration: 1
   animationName: 
   canBeInterrupted: 0
   canInterruptOthers: 0
