@@ -37,14 +37,20 @@ public class SceneTransitionManager : SingletonMonoBehaviour<SceneTransitionMana
 
     protected override void OnInitialized()
     {
-        settings = Resources.Load<SceneTransitionSettings>("ScriptableObject/SceneTransitionSettings");
-        database = Resources.Load<SceneDatabase>("ScriptableObject/SceneDatabase");
+        settings = Resources.Load<SceneTransitionSettings>("ScriptableObject/UI/SceneTransition/SceneTransitionSettings");
+        database = Resources.Load<SceneDatabase>("ScriptableObject/UI/SceneTransition/SceneDatabase");
 
         if (settings == null)
+        {
             Debug.LogError("SceneTransitionSettings が見つかりません");
 
+        }
+
         if (database == null)
+        {
             Debug.LogError("SceneDatabase が見つかりません");
+
+        }
     }
 
     #region Public API
@@ -69,11 +75,9 @@ public class SceneTransitionManager : SingletonMonoBehaviour<SceneTransitionMana
     /// </summary>
     public void TransitionToNextScene(FadeMode fadeMode = FadeMode.SimpleColor)
     {
-        Debug.Log($"InstanceID: {GetInstanceID()}");
 
 
-        Debug.LogWarning("Transition呼ばれた場所: " + this.name);
-        Debug.LogWarning($"isTransitioning: {isTransitioning}");
+      
         if (isTransitioning) return;
 
         string current = SceneManager.GetActiveScene().name;
@@ -134,32 +138,31 @@ public class SceneTransitionManager : SingletonMonoBehaviour<SceneTransitionMana
             return;
 
         isTransitioning = true;
-        Debug.Log("① 開始");
 
         try
         {
             InitFade(settings.simpleColorPrefab);
-            Debug.Log("① 開始");
 
             await fadeController.FadeOutAsync(settings.fadeOutSettings);
-            Debug.Log("③ SceneLoad前");
 
+            AudioManager.Instance.PlaySEById(SEName.SceneTransition);
+
+
+            // BGMフェードアウト
+            await AudioManager.Instance.FadeOutBGMAsync();
             await SceneManager.LoadSceneAsync(targetScene.SceneName);
-            Debug.Log("④ FadeIn前");
-            // これ入れる
-            await UniTask.DelayFrame(1);
+            //
             await UniTask.DelayFrame(1);
             await fadeController.FadeInAsync(settings.fadeInSettings);
-            Debug.Log("⑤ 完了");
 
         }
         catch (System.Exception e)
         {
-            Debug.Log($"🔥 Exception: {e}");
+            Debug.Log($" Exception: {e}");
         }
         finally
         {
-            Debug.Log("⑥ isTransitioning falseに戻す");
+            Debug.Log(" isTransitioning falseに戻す");
             isTransitioning = false;
         }
     }

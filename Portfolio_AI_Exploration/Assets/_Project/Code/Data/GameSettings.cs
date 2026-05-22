@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using UnityEngine;
+using UnityEngine.Audio;
 
 /// <summary>
 /// ゲームの初期設定クラス
@@ -41,13 +42,22 @@ public class GameSettings : ScriptableObject
 
 
 
-    /// <summary>
-    /// リトライ時などの待機時間 (ms)
-    /// </summary>
-    [SerializeField, Tooltip("リトライ時などの待機時間 (ms)")]
-    private int retryDelayMilliseconds = 100;
 
     #endregion
+    [SerializeField]
+    private AudioMixerGroup bgmMixerGroup;
+
+    [SerializeField]
+    private AudioMixerGroup seMixerGroup;
+
+    [SerializeField]
+    private BGMConfigTable bgmConfigTable;
+    [SerializeField]
+    private SEConfigTable seConfigTable;
+
+    [SerializeField, Tooltip("BGMフェード時間（秒）")]
+    [Range(0f, 2f)]
+    private float bgmFadeDuration = 0.3f;
 
 
     #region　読み取り専用フィールド( ゲームの初期音量設定の内部管理用変数)
@@ -72,13 +82,19 @@ public class GameSettings : ScriptableObject
 
     #region　読み取り専用フィールド( ゲームのその他初期設定の内部管理用変数)
 
+    internal AudioMixerGroup BgmMixerGroup => bgmMixerGroup;
+
+    internal AudioMixerGroup SeMixerGroup => seMixerGroup;
 
 
-    /// <summary>
-    /// リトライ時などの待機時間 (ms)の読み取り専用
-    /// </summary>
-    internal int RetryDelayMilliseconds => retryDelayMilliseconds;
 
+    internal BGMConfigTable BgmConfigTable => bgmConfigTable;
+
+    internal SEConfigTable SEConfigTable => seConfigTable;
+
+
+
+    internal float BgmFadeDuration => bgmFadeDuration;
     #endregion
 
 }

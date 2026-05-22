@@ -17,10 +17,13 @@ public class TitleManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        demoAction = inputActions.FindAction("Click"); // "Skill" は InputAction 名
+        demoAction = inputActions.FindAction("Click"); 
         InitializeButtons();
-        exitGame =FindAnyObjectByType<ExitGame>();                                       
+        exitGame =FindAnyObjectByType<ExitGame>();
 
+        AudioManager.Instance.FadeInBGM();
+
+        AudioManager.Instance.PlayBGMIfNotPlaying(BGMName.Title);    
         SetupButtonListeners();
 
     }
@@ -47,6 +50,7 @@ public class TitleManager : MonoBehaviour
     }
     private void OnStartButtonClicked()
     {
+
         SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
     }
 
@@ -79,9 +83,12 @@ public class TitleManager : MonoBehaviour
     {
         if (demoAction != null && demoAction.IsPressed())
         {
-            SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
+            OnStartButtonClicked();
 
 
         }
+
+
+
     }
 }

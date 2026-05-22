@@ -34,7 +34,7 @@ public class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBehaviour
             if (dontDestroyOnLoad)
                 DontDestroyOnLoad(gameObject);
 
-            OnInitialized(); // ← ★ここが重要
+            OnInitialized();
         }
         else if (_instance != this)
         {

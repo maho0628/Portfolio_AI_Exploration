@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf06be84389dc4648a0f43b4449e5094, type: 3}
+  m_Name: gameSettings
+  m_EditorClassIdentifier: 
+  maxSeCount: 10
+  initialBgmVolume: 0.096
+  initialSeVolume: 0.633
+  bgmMixerGroup: {fileID: 2470247180301319813, guid: 7f5cc7849bbe64a4381cfa61d386ef11, type: 2}
+  seMixerGroup: {fileID: -2293204170877483160, guid: 7f5cc7849bbe64a4381cfa61d386ef11, type: 2}
+  bgmConfigTable: {fileID: 11400000, guid: 90148ef4821f6b34ba9533f2adca6921, type: 2}
+  seConfigTable: {fileID: 11400000, guid: 05b40494b64856040b566658e2599c01, type: 2}
+  bgmFadeDuration: 1.296
