@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   resultType: 1
   resultText: Victory!
-  textColor: {r: 0, g: 0, b: 0, a: 1}
+  textColor: {r: 0.9245283, g: 0.026165737, b: 0.026165737, a: 1}
+  resultButtonText: Next (R)

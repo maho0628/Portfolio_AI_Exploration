@@ -3,7 +3,7 @@ using DG.Tweening;
 using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class ResultManager : MonoBehaviour
@@ -23,153 +23,251 @@ public class ResultManager : MonoBehaviour
     [SerializeField] private Button backToTitleButton;
 
     private CanvasGroup retryCanvasGroup;
-    [SerializeField] private SceneMap sceneMap;
+    private CanvasGroup interventionCanvasGroup;
+    private CanvasGroup successRateCanvasGroup;
 
+    [SerializeField] private SceneMap sceneMap;
 
     private void Awake()
     {
-        retryCanvasGroup = retryButton.GetComponent<CanvasGroup>();
-        if (retryCanvasGroup == null)
-        {
-            retryCanvasGroup = retryButton.gameObject.AddComponent<CanvasGroup>();
-        }
+        retryCanvasGroup = GetOrAddCanvasGroup(retryButton.gameObject);
+        interventionCanvasGroup = GetOrAddCanvasGroup(interventionText.gameObject);
+        successRateCanvasGroup = GetOrAddCanvasGroup(successRateText.gameObject);
 
-       
+
     }
-    void Start()
+
+    async void Start()
     {
-        ResultDisplayData data = GetResultData(BattleResultData.resultType);
+        SetupResultData();
+        SetupTexts();
 
-
-        resultText.text = data.resultText;
-
-        if (data != null)
-        {
-            resultText.text = data.resultText;
-            resultText.color = data.textColor;
-        }
-
-        int interventionCount = BattleResultData.interventionCount;
-        int successCount = BattleResultData.successCount;
-
-        float successRate = 0f;
-        if (interventionCount > 0)
-        {
-            successRate = (float)successCount / interventionCount * 100f;
-        }
-
-        interventionText.text = $"Interventions : {interventionCount}";
-        successRateText.text = $"Success Rate : {successRate:0}%";
         retryButton.onClick.AddListener(Retry);
         backToTitleButton.onClick.AddListener(BackToTitle);
+        // BGM決定
         if (BattleResultData.resultType == ResultType.Goal)
         {
-            PlayGoalPresentation().Forget();
+            AudioManager.Instance.ForcePlayBGM(BGMName.Goal);
         }
-    }
-
-    ResultDisplayData GetResultData(ResultType type)
-    {
-        foreach (var data in resultDataList)
+        else
         {
-            if (data.resultType == type)
-                return data;
+            AudioManager.Instance.PlayBGMIfNotPlaying(BGMName.Result);
         }
-        Debug.LogWarning($"ResultDisplayData not found : {type}");
 
-        return null;
+        // FadeIn
+        AudioManager.Instance.FadeInBGM();
+
+        // 演出
+        await PlayIntroAnimation();
+
+        if (BattleResultData.resultType == ResultType.Goal)
+        {
+            await PlayGoalPresentation();
+        }
     }
-    private async UniTaskVoid PlayGoalPresentation()
+
+    // =========================
+    // INTRO
+    // =========================
+    private async UniTask PlayIntroAnimation()
     {
         try
         {
-            // Goal時はRetryできない
-            retryButton.interactable = false;
+            // -----------------
+            // RESULT
+            // -----------------
+            resultText.alpha = 0;
+            resultText.transform.localScale = Vector3.one * animationData.resultScaleNormal;
 
-            // ちょい間を置いてから消す
+            Sequence resultSeq = DOTween.Sequence();
+
+            resultSeq.Append(
+                resultText.DOFade(1f, animationData.resultFadeDuration)
+            );
+
+            resultSeq.Join(
+                resultText.transform.DOScale(animationData.resultScaleUp, animationData.resultFadeDuration)
+                    .SetEase(animationData.resultEase)
+            );
+
+            resultSeq.Append(
+                resultText.transform.DOScale(animationData.resultScaleBack, animationData.resultFadeDuration)
+            );
+
+            resultSeq.Append(
+                resultText.transform.DOScale(animationData.resultScaleNormal, animationData.resultFadeDuration)
+            );
+            AudioManager.Instance.PlaySEById(SEName.ResultAppear);
+            await TweenUtil.Play(resultSeq);
+
             await UniTask.Delay(
-                TimeSpan.FromSeconds(animationData.retryFadeDelay)
+                TimeSpan.FromSeconds(animationData.betweenDelayLong)
             );
 
-            Sequence hideRetrySequence = DOTween.Sequence();
+            TextMeshProUGUI text = retryButton.GetComponentInChildren<TextMeshProUGUI>();
 
-            // 少し縮みながら
-            hideRetrySequence.Join(
-                retryButton.transform
-                    .DOScale(
-                        animationData.retryShrinkScale,
-                        animationData.retryFadeDuration
+            if (BattleResultData.resultType == ResultType.Victory)
+            {
+                text.text = resultDataList[(int)ResultType.Victory].resultButtonText;
+
+            }
+            else
+            {
+                text.text = resultDataList[(int)ResultType.Defeat].resultButtonText;
+
+            }
+            // -----------------
+            // SUCCESS RATE
+            // -----------------
+            successRateCanvasGroup.alpha = 0;
+            successRateText.transform.localPosition += new Vector3(0, -animationData.successMoveOffsetY, 0);
+
+            await TweenUtil.Play(
+                successRateCanvasGroup.DOFade(1f, animationData.successFadeDuration)
+            );
+
+            await TweenUtil.Play(
+                successRateText.transform
+                    .DOLocalMoveY(
+                        successRateText.transform.localPosition.y + animationData.successMoveOffsetY,
+                        animationData.successFadeDuration
                     )
-                    .SetEase(animationData.retryFadeEase)
             );
 
-            // フェードアウト
-            hideRetrySequence.Join(
-                retryCanvasGroup.DOFade(
-                    0f,
-                    animationData.retryFadeDuration
-                )
+            await UniTask.Delay(TimeSpan.FromSeconds(animationData.betweenDelayMid));
+
+            await TweenUtil.Play(
+                successRateText.transform.DOScale(animationData.successScaleUp, animationData.successScaleDuration)
             );
 
-            bool sequenceFinished = false;
+            await TweenUtil.Play(
+                successRateText.transform.DOScale(1f, animationData.successScaleDuration)
+            );
 
-            hideRetrySequence.OnComplete(() => sequenceFinished = true);
+            await UniTask.Delay(TimeSpan.FromSeconds(animationData.betweenDelayShort));
 
-            await UniTask.WaitUntil(() => sequenceFinished);
-            // 完全に消す
+            // -----------------
+            // INTERVENTION
+            // -----------------
+            interventionCanvasGroup.alpha = 0;
+            interventionText.transform.localPosition += new Vector3(0, -animationData.interventionMoveOffsetY, 0);
 
-            retryButton.interactable = false;
-            retryCanvasGroup.blocksRaycasts = false;
-            retryCanvasGroup.alpha = 0f;
+            await TweenUtil.Play(
+                interventionCanvasGroup.DOFade(1f, animationData.interventionFadeDuration)
+            );
+
+            await TweenUtil.Play(
+                interventionText.transform
+                    .DOLocalMoveY(
+                        interventionText.transform.localPosition.y + animationData.interventionMoveOffsetY,
+                        animationData.interventionFadeDuration
+                    )
+            );
         }
-        catch (OperationCanceledException)
-        {
-            // シーン遷移時などに破棄されたら無視
-        }
+        catch (OperationCanceledException) { }
     }
+
+    // =========================
+    // SETUP
+    // =========================
+    private void SetupResultData()
+    {
+        var data = GetResultData(BattleResultData.resultType);
+        if (data == null) return;
+
+        resultText.text = data.resultText;
+        resultText.color = data.textColor;
+    }
+
+    private void SetupTexts()
+    {
+        int interventionCount = BattleResultData.interventionCount;
+        int successCount = BattleResultData.successCount;
+
+        float successRate = interventionCount > 0
+            ? (float)successCount / interventionCount * 100f
+            : 0f;
+
+        interventionText.text = $"Interventions : {interventionCount}";
+        successRateText.text = $"Success Rate : {successRate:0}%";
+
+        interventionCanvasGroup.alpha = 0;
+        successRateCanvasGroup.alpha = 0;
+    }
+
+    // =========================
+    // DATA
+    // =========================
+    private ResultDisplayData GetResultData(ResultType type)
+    {
+        foreach (var data in resultDataList)
+            if (data.resultType == type)
+                return data;
+
+        Debug.LogWarning($"ResultDisplayData not found : {type}");
+        return null;
+    }
+
+    // =========================
+    // GOAL
+    // =========================
+    private async UniTask PlayGoalPresentation()
+    {
+        try
+        {
+            retryButton.interactable = false;
+
+            await UniTask.Delay(TimeSpan.FromSeconds(animationData.retryFadeDelay));
+
+            Sequence seq = DOTween.Sequence();
+            seq.Join(retryButton.transform.DOScale(animationData.retryShrinkScale, animationData.retryFadeDuration));
+            seq.Join(retryCanvasGroup.DOFade(0f, animationData.retryFadeDuration));
+
+            await TweenUtil.Play(seq);
+
+            retryCanvasGroup.alpha = 0f;
+            retryCanvasGroup.blocksRaycasts = false;
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    // =========================
+    // INPUT
+    // =========================
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            Retry();
-        }
-
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            BackToTitle();
-        }
+        if (Input.GetKeyDown(KeyCode.R)) Retry();
+        if (Input.GetKeyDown(KeyCode.T)) BackToTitle();
     }
 
     public void Retry()
     {
-
         if (BattleResultData.resultType == ResultType.Goal)
-        {
             return;
 
-        }
         if (BattleResultData.resultType == ResultType.Victory)
         {
             ExplorationData.currentRouteIndex++;
         }
+
         BattleResultData.resultType = ResultType.Defeat;
 
-
-
-
-    
-
-        SceneTransitionManager.Instance.TransitionTo(sceneMap.Get(SceneMap.SceneKey.Exploration));
+        SceneTransitionManager.Instance.TransitionTo(
+            sceneMap.Get(SceneMap.SceneKey.Exploration)
+        );
     }
-
-
-  
 
     public void BackToTitle()
     {
         ExplorationData.playerPosition = Vector3.zero;
 
-
         SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
+    }
+
+    private CanvasGroup GetOrAddCanvasGroup(GameObject obj)
+    {
+        var cg = obj.GetComponent<CanvasGroup>();
+        if (cg == null) cg = obj.AddComponent<CanvasGroup>();
+        return cg;
     }
 }

@@ -9,4 +9,7 @@ public class ResultDisplayData : ScriptableObject
     public Color textColor;
 
 
+
+    [Header("Button")]
+    public string resultButtonText;
 }
