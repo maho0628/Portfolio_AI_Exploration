@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using Cysharp.Threading.Tasks;
+using UnityEditor;
 
 /*
  * SimpleMoveToGoal
@@ -24,14 +25,14 @@ using Cysharp.Threading.Tasks;
 public class SimpleMoveToGoal : MonoBehaviour
 {
     [SerializeField] private ExplorationRoute route;
+  
+    [SerializeField]
+    private ExplorationMoveSettingsSO moveSettings;
+
+    [SerializeField] private SceneMap sceneMap;
+
+    private float footstepTimer;
     private int currentIndex = 0;
-    [Header("Planner Adjustable")]
-    [Tooltip("到達判定の余裕距離。プランナーが微調整可能")]
-    [SerializeField] private float arrivalThreshold = 0.05f;
-
-    [SerializeField] private SceneMap sceneMap; 
-
-
     private NavMeshAgent agent;
     private bool hasArrivedHandled = false;
 
@@ -53,18 +54,18 @@ public class SimpleMoveToGoal : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
 
         currentIndex = ExplorationData.currentRouteIndex;
+        AudioManager.Instance.FadeInBGM();
+        AudioManager.Instance.PlayBGMIfNotPlaying   (BGMName.Exploration);
 
         agent.Warp(ExplorationData.playerPosition);
-        agent.ResetPath(); // ← これ超重要
-
-        await UniTask.Yield(); // ← これ
+        agent.ResetPath(); 
+        await UniTask.Yield();
 
         if (CurrentTarget != null)
         {
             hasArrivedHandled = false;
             agent.isStopped = false;
-            hasStartedMoving = false; // ←追加
-
+            hasStartedMoving = false; 
             agent.SetDestination(CurrentTarget.position);
 
             Debug.Log(ExplorationData.currentRouteIndex);
@@ -88,6 +89,16 @@ public class SimpleMoveToGoal : MonoBehaviour
             case MoveState.Moving:
                 // 移動中処理
                 Debug.Log("State: Moving - 移動中");
+
+                footstepTimer += Time.deltaTime;
+
+                if (footstepTimer >= moveSettings.footstepInterval)
+                {
+                    footstepTimer = 0f;
+
+                    AudioManager.Instance.PlaySEById(SEName.Footstep);
+                }
+
                 break;
 
             case MoveState.Arrived:
@@ -118,20 +129,7 @@ public class SimpleMoveToGoal : MonoBehaviour
         }
     }
 
-    //private void MoveNext()
-    //{
-    //    currentIndex++;
-    //    ExplorationData.currentRouteIndex = currentIndex; // ←保存
-
-    //    if (currentIndex >= route.targets.Count)
-    //    {
-    //        return;
-    //    }
-
-    //    agent.isStopped = false;
-    //    agent.SetDestination(CurrentTarget.position);
-    //    hasArrivedHandled = false;
-    //}
+ 
     /*
      * UpdateState
      *
@@ -149,9 +147,7 @@ public class SimpleMoveToGoal : MonoBehaviour
      * - remainingDistance だけで判定しない
      *   → 経路計算中は 0 になる場合がある
      * - この到達判定は、移動→Idle、移動→Investigate、移動→次の行動
-     *   といった「状態遷移のトリガー」として使用
-     * - isStopped = true は仮処理、本番では StateMachine / BehaviorTree で制御
-     */
+     *   といった「状態遷移のトリガー」として使用     */
     private void UpdateState()
     {
 
@@ -193,7 +189,7 @@ public class SimpleMoveToGoal : MonoBehaviour
         // 到達成功判定（Arrived）
         // remainingDistance が stoppingDistance + threshold 以下
         // ---------------------------
-        if (agent.remainingDistance <= agent.stoppingDistance + arrivalThreshold)
+        if (agent.remainingDistance <= agent.stoppingDistance + moveSettings .arrivalThreshold)
         {
             state = MoveState.Arrived;
             // 到達した対象が敵なら戦闘シーンへ
@@ -245,15 +241,20 @@ public class SimpleMoveToGoal : MonoBehaviour
         {
             case InteractRole.Enemy:
                 Debug.Log("Enemy reached → BattleScene");
+                AudioManager.Instance.PlaySEById(SEName.EnemyEncounter);
                 ExplorationData.playerPosition = transform.position;
                 if (SceneTransitionManager.Instance.IsTransitioning) return;
+
                 SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
                 break;
 
             case InteractRole.Goal:
+                AudioManager.Instance.PlaySEById(SEName.GoalAppear);
+
                 BattleResultData.resultType = ResultType.Goal;
                 if (SceneTransitionManager.Instance.IsTransitioning) return;
                 Debug.Log("Goal reached → ResultScene");
+
                 SceneTransitionManager.Instance.TransitionTo(sceneMap.Get(SceneMap.SceneKey.Result));
                 break;
         }

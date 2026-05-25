@@ -32,7 +32,13 @@ public class SEConfig
     [SerializeField, Tooltip("SEの説明")]
     private string description;  // 例：「ボタン押下音」など
 
+
+    [SerializeField, Range(0f, 1f)]
+    private float volume = 1f;
+
     #endregion
+
+
 
 
     #region 読み取り専用プロパティ(SE設定の内部管理用変数)
@@ -51,6 +57,8 @@ public class SEConfig
     /// SEの説明の読み取り専用
     /// </summary>
     internal string Description => description;
+
+    internal float Volume => volume;    
 
     #endregion
 

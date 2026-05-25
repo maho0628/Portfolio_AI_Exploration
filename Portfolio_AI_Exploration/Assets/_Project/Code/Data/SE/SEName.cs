@@ -1,17 +1,33 @@
-﻿
+
 /// <summary>
 /// SEの名前のEnum
 /// </summary>
 internal enum SEName
 {
+    ButtonClick,
+    ButtonHover,
 
-    Miss,
-    Great,
-    Perfect,
-    Good,
-    MouseOver,
-    ToResult,
-    TitleClicked,
+    Attack,
+    PlayerHit,
+    EnemyHit,
+    PlayerDeath,
+    EnemyDeath,
+    UBImpact,
+    SceneTransition,
+
+
+    EnemyEncounter,
+    GoalAppear,
+
+    Footstep,
+
+    ResultAppear,
+ 
+
+    InterventionStart,
+    InterventionSuccess,
+    PerfectTiming,
+
 
 }
 
