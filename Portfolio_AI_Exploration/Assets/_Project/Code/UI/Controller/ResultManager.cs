@@ -184,6 +184,7 @@ public class ResultManager : MonoBehaviour
         int interventionCount = BattleResultData.interventionCount;
         int successCount = BattleResultData.successCount;
 
+        Debug.Log(successCount);
         float successRate = interventionCount > 0
             ? (float)successCount / interventionCount * 100f
             : 0f;
