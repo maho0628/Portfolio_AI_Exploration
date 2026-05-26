@@ -16,12 +16,16 @@ public class HoldState : BattleStateBase
     public override void Tick()
     {
 
-        if (owner.ConsumeSkillInput())
+        // 介入成功時
+        // Holdを即終了してIdleへ戻す
+        if (owner.ConsumeManualSkillRequest())
         {
+            Debug.Log("[Hold] Interrupt: ManualSkill");
 
-            Debug.Log("[Hold] Interrupt: SkillInput");
             owner.ClearCurrentAction();
+
             owner.ChangeState(owner.IdleState);
+
             return;
         }
 

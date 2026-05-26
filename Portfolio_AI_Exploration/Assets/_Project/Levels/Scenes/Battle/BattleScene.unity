@@ -179,10 +179,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3498844587699383904, guid: fdf678a7193c58346a367114b3da57ac, type: 3}
-      propertyPath: m_CastShadows
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5316820693925015571, guid: fdf678a7193c58346a367114b3da57ac, type: 3}
       propertyPath: m_Enabled
       value: 1
@@ -202,10 +198,6 @@ PrefabInstance:
     - target: {fileID: 7905861088977196740, guid: fdf678a7193c58346a367114b3da57ac, type: 3}
       propertyPath: m_IsActive
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8794497642946437727, guid: fdf678a7193c58346a367114b3da57ac, type: 3}
-      propertyPath: m_CastShadows
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 8281754945171136082, guid: fdf678a7193c58346a367114b3da57ac, type: 3}

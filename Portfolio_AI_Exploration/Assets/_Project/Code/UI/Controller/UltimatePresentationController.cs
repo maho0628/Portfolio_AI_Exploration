@@ -10,14 +10,14 @@ public class UltimatePresentationController : MonoBehaviour
     [SerializeField] private UltimatePresentationSettingsSO settings;
     [SerializeField] private Animator animator;
 
-    private bool isPlaying;
+    private static bool globalPlaying;
     private static int slowRefCount;
 
 
     public async UniTask Play()
     {
-        if (isPlaying) return;
-        isPlaying = true;
+        if (globalPlaying) return;
+        globalPlaying = true;
 
         darkPanel.gameObject.SetActive(true);
 
@@ -66,6 +66,6 @@ public class UltimatePresentationController : MonoBehaviour
         darkPanel.gameObject.SetActive(false);
         whiteFlash.gameObject.SetActive(false);
 
-        isPlaying = false;
+        globalPlaying = false;
     }
 }

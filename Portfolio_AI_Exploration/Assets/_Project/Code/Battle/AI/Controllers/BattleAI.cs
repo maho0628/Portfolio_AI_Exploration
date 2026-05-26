@@ -56,11 +56,10 @@ public abstract class BattleAI : MonoBehaviour
 
     [SerializeField] private DamageTextPool damageTextPool;
     [SerializeField] private UltimatePresentationController ultimatePresentation;
-
+    private bool canIntervention;
     /// skill入力バッファフラグ
     /// </summary>
-    private bool skillInputBuffered;
-
+    private bool manualSkillRequested;
     private bool isPlayingUltimate;
     private bool isDead;
 
@@ -120,6 +119,22 @@ public abstract class BattleAI : MonoBehaviour
         currentState.Tick();
     }
 
+    public void RequestManualSkill()
+    {
+        manualSkillRequested = true;
+    }
+
+    public bool ConsumeManualSkillRequest()
+    {
+        if (!manualSkillRequested) return false;
+
+        manualSkillRequested = false;
+        return true;
+    }
+    public void SetInterventionWindow(bool value)
+    {
+        canIntervention = value;
+    }
     public bool TryDecideSkill()
     {
         if (isPlayingUltimate) return false;
@@ -129,7 +144,8 @@ public abstract class BattleAI : MonoBehaviour
         if (currentState == SkillState) return false;
 
         //まずUB条件だけを最優先で確定させる
-        bool hasManualInput = skillInputBuffered;
+        bool hasManualInput =
+            ConsumeManualSkillRequest();
         bool gaugeFull = IsGaugeFull();
 
         //Debug.Log($"[UB CHECK] TP:{Blackboard.CurrentTP}/{Blackboard.MaxTP} manual:{hasManualInput} full:{gaugeFull}");
@@ -143,8 +159,7 @@ public abstract class BattleAI : MonoBehaviour
 
                 isPlayingUltimate = true;
 
-                // 手動があれば消費（なくても自動で出すならここでOK）
-                if (hasManualInput) skillInputBuffered = false;
+               
 
                 ultimatePresentation.Play().Forget();
 
@@ -354,30 +369,31 @@ public abstract class BattleAI : MonoBehaviour
     public virtual void ReceivePlayerCommand(PlayerCommand command)
     {
         Debug.Log($"{name}'s ReceivePlayerCommand called");
-
+        Debug.Log(currentState.GetType().Name);
         switch (command)
         {
             case PlayerCommand.Skill:
                 BattleResultData.interventionCount++;
 
-                if (currentState == idleState)
+                if (canIntervention)
                 {
                     BattleResultData.successCount++;
                 }
 
-                skillInputBuffered = true;
-                Debug.Log("skillInputBuffered = true");
+                // 成功時のみ予約
+                if (canIntervention)
+                {
+                    BattleResultData.successCount++;
+
+                    RequestManualSkill();
+
+                    Debug.Log("manualSkillRequested = true");
+                }
                 break;
         }
     }
 
-    public bool ConsumeSkillInput()
-    {
-        if (!skillInputBuffered) return false;
-
-        skillInputBuffered = false;
-        return true;
-    }
+  
 
     public virtual BattleAction GetDefaultAction()
     {

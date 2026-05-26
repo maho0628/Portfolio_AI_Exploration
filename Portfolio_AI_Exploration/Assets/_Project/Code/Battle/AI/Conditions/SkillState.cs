@@ -41,6 +41,18 @@ public class SkillState : BattleStateBase
 
         timer += Time.deltaTime;
 
+        float hitTiming =
+    currentSkill.duration *
+    currentSkill.InterventionTiming;
+
+        float window =
+            currentSkill.InterventionWindow;
+
+        bool inWindow =
+            timer >= hitTiming - window &&
+            timer <= hitTiming + window;
+
+        owner.SetInterventionWindow(inWindow);
         // 途中で攻撃発生
         if (!executed && timer >= currentSkill.duration * 0.5f)
         {

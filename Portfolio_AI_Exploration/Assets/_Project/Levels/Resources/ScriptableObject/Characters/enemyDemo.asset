@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f49c7533faf11d74a8312680416b19ee, type: 3}
   m_Name: enemyDemo
   m_EditorClassIdentifier: 
-  maxHP: 2200
+  maxHP: 2000
   physicalAttack: 22
   magicAttack: 5
   physicalDefense: 1

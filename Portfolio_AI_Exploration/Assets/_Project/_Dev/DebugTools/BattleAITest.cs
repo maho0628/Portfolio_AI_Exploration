@@ -40,25 +40,12 @@ public class BattleAITest : BattleAI
     protected override void Update()
     {
 
-        // Refactor:スペースキーが反応しづらく検証しづらいので一時的にコメントアウトほかの挙動確認でき次第（インプットマネージャー製作次第修正予定
-        //if (demoAction != null && demoAction.IsPressed())
-        //{
-        //    ReceivePlayerCommand(PlayerCommand.Skill);
-        //}
-
-        if (Input.GetKeyDown(KeyCode.Mouse0))
+        if (demoAction != null && demoAction.IsPressed())
         {
             ReceivePlayerCommand(PlayerCommand.Skill);
         }
 
-
-        //if (Input.GetKeyDown(KeyCode.T))
-        //{
-        //    Blackboard.AddTP(300);
-        //    Debug.Log($"TP: {Blackboard.CurrentTP}/{Blackboard.MaxTP}");
-        //    Debug.Log($"GaugeFull: {IsGaugeFull()}");
-
-        //}
+      
         base.Update();
 
     }
