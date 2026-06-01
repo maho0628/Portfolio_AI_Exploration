@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: New Exploration Move Settings SO
   m_EditorClassIdentifier: 
   arrivalThreshold: 0.05
-  footstepInterval: 0.4
+  footstepInterval: 0.5
+  footstepMoveThreshold: 0.01

@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: gameSettings
   m_EditorClassIdentifier: 
   maxSeCount: 10
-  initialBgmVolume: 0.096
+  initialBgmVolume: 0.059
   initialSeVolume: 0.633
   bgmMixerGroup: {fileID: 2470247180301319813, guid: 7f5cc7849bbe64a4381cfa61d386ef11, type: 2}
   seMixerGroup: {fileID: -2293204170877483160, guid: 7f5cc7849bbe64a4381cfa61d386ef11, type: 2}
   bgmConfigTable: {fileID: 11400000, guid: 90148ef4821f6b34ba9533f2adca6921, type: 2}
   seConfigTable: {fileID: 11400000, guid: 05b40494b64856040b566658e2599c01, type: 2}
-  bgmFadeDuration: 1.296
+  bgmFadeDuration: 0.75

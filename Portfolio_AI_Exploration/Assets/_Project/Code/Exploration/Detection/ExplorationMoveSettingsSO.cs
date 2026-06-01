@@ -8,4 +8,7 @@ public class ExplorationMoveSettingsSO : ScriptableObject
 
     [Header("Footstep")]
     public float footstepInterval = 0.4f;
+
+    [SerializeField]
+    public float footstepMoveThreshold = 0.01f;
 }

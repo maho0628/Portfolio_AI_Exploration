@@ -14,22 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bgmLists:
   - bgmId: 1
-    bgmAudioClip: {fileID: 8300000, guid: d234e05c6deab314594f1c22e4b1b253, type: 3}
+    bgmAudioClip: {fileID: 8300000, guid: 460863ecbf87c0e409cd247f0a8c9f68, type: 3}
     bgmDisplayName: 
     bgmJacketImage: {fileID: 0}
   - bgmId: 2
-    bgmAudioClip: {fileID: 8300000, guid: dc0df9379c0a47a48be0cb7c72889c75, type: 3}
+    bgmAudioClip: {fileID: 8300000, guid: 968d092cdc35ca04280dfda2db1e5494, type: 3}
     bgmDisplayName: 
     bgmJacketImage: {fileID: 0}
   - bgmId: 3
-    bgmAudioClip: {fileID: 8300000, guid: ed121d18fdffb954e848a34897addcd0, type: 3}
+    bgmAudioClip: {fileID: 8300000, guid: 7779d396bf321934a95be3fbf3605a82, type: 3}
     bgmDisplayName: 
     bgmJacketImage: {fileID: 0}
   - bgmId: 4
-    bgmAudioClip: {fileID: 8300000, guid: 656b4e294865560439d774032c224ae0, type: 3}
+    bgmAudioClip: {fileID: 8300000, guid: fb8e0ced836c5d648bec9f96b7946caa, type: 3}
     bgmDisplayName: 
     bgmJacketImage: {fileID: 0}
   - bgmId: 5
-    bgmAudioClip: {fileID: 8300000, guid: bef36019a32231d4381572784678f437, type: 3}
+    bgmAudioClip: {fileID: 8300000, guid: 1ed7f67b6db50ec4d9a5b42d07151bf1, type: 3}
     bgmDisplayName: 
     bgmJacketImage: {fileID: 0}

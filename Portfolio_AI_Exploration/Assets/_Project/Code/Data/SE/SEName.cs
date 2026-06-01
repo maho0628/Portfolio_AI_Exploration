@@ -15,18 +15,15 @@ internal enum SEName
     UBImpact,
     SceneTransition,
 
-
     EnemyEncounter,
     GoalAppear,
 
     Footstep,
 
     ResultAppear,
- 
 
-    InterventionStart,
-    InterventionSuccess,
-    PerfectTiming,
+
+
 
 
 }
