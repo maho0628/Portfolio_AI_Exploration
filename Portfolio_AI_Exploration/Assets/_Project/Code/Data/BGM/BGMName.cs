@@ -1,13 +1,14 @@
 
 /// <summary>
-/// BGM‚Ì–¼‘O‚ÌEnum
+/// BGMã®åå‰ã®Enum
 /// </summary>
 internal enum BGMName
 {
 
-    ACRhythm,
-    Beginning,
-    Falsehood,
-    Matrix
-
+    None,
+    Title,
+    Exploration,
+    Battle,
+    Result,
+    Goal
 }

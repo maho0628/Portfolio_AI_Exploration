@@ -1,61 +1,50 @@
 using UnityEngine;
 
-public class SingletonMonoBehaviour<T> : MonoBehaviour where T : Component
+public class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBehaviour
 {
     private static T _instance;
 
-    /// <summary>
-    /// ƒVƒ“ƒOƒ‹ƒgƒ“ƒCƒ“ƒXƒ^ƒ“ƒX‚ğæ“¾
-    /// </summary>
     public static T Instance
     {
         get
         {
             if (_instance == null)
             {
-                //  ƒCƒ“ƒXƒ^ƒ“ƒX‚ª‘¶İ‚µ‚È‚¢ê‡AƒV[ƒ““à‚ğŒŸõ
                 _instance = FindAnyObjectByType<T>();
 
                 if (_instance == null)
                 {
-                    // ƒCƒ“ƒXƒ^ƒ“ƒX‚ªŒ©‚Â‚©‚ç‚È‚¯‚ê‚ÎV‚µ‚­ì¬
-                    SetupInstance();
-                }
-                else
-                {
-                    // Šù‚ÉƒCƒ“ƒXƒ^ƒ“ƒX‚ª‘¶İ‚·‚éê‡‚ÌƒfƒoƒbƒOƒƒbƒZ[ƒW
-                    DebugManager.Log($"[Singleton] Instance of {typeof(T).Name} already created: {_instance.gameObject.name}");
+                    GameObject go = new GameObject(typeof(T).Name);
+                    _instance = go.AddComponent<T>();
+                    Debug.Log($"[Singleton] {typeof(T).Name} auto-created");
                 }
             }
-
             return _instance;
         }
     }
 
-    /// <summary>
-    /// ƒCƒ“ƒXƒ^ƒ“ƒX‚ªƒV[ƒ““à‚É‘¶İ‚µ‚È‚¢ê‡AƒCƒ“ƒXƒ^ƒ“ƒX‚ğƒZƒbƒgƒAƒbƒv
-    /// </summary>
-    private static void SetupInstance()
-    {
-        GameObject gameObj = new GameObject(typeof(T).Name);
-        _instance = gameObj.AddComponent<T>();
-        DontDestroyOnLoad(gameObj);
-    }
+    [SerializeField] private bool dontDestroyOnLoad = true;
 
-    /// <summary>
-    /// d•¡ƒCƒ“ƒXƒ^ƒ“ƒX‚Ìœ‹
-    /// </summary>
     protected virtual void Awake()
     {
-        // ƒCƒ“ƒXƒ^ƒ“ƒX‚ª‚·‚Å‚É‘¶İ‚·‚é‚©Šm”F‚µA‘¶İ‚·‚éê‡‚Í©g‚ğ”jŠü
         if (_instance == null)
         {
             _instance = this as T;
-            DontDestroyOnLoad(gameObject);
+
+            if (dontDestroyOnLoad)
+                DontDestroyOnLoad(gameObject);
+
+            OnInitialized();
         }
-        else
+        else if (_instance != this)
         {
             Destroy(gameObject);
+            return;
         }
     }
+
+    /// <summary>
+    /// åˆæœŸåŒ–ãƒ•ãƒƒã‚¯ï¼ˆæ´¾ç”Ÿã‚¯ãƒ©ã‚¹ã§å¿…ãšä½¿ã†ï¼‰
+    /// </summary>
+    protected virtual void OnInitialized() { }
 }

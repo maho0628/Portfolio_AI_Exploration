@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f49c7533faf11d74a8312680416b19ee, type: 3}
+  m_Name: enemyDemo
+  m_EditorClassIdentifier: 
+  maxHP: 2000
+  physicalAttack: 22
+  magicAttack: 5
+  physicalDefense: 1
+  magicDefense: 5
+  tpMax: 1000
+  skillLoop:
+  - {fileID: 11400000, guid: 8e4ae2408057ecd4bb1520ac1961fc74, type: 2}
+  - {fileID: 11400000, guid: 2dbef69279443784abb948120c66fbfc, type: 2}
+  - {fileID: 11400000, guid: c1c532b024223094fa19a88b41c46008, type: 2}

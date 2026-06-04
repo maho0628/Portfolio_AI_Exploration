@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16d749fe79b512d43bc98a998f4198ed, type: 3}
+  m_Name: SEConfig
+  m_EditorClassIdentifier: 
+  seLists:
+  - seId: 0
+    seAudioClip: {fileID: 8300000, guid: 7bd4cce2589e0c040a83307fb5e34932, type: 3}
+    description: 
+    volume: 0.617
+  - seId: 1
+    seAudioClip: {fileID: 8300000, guid: d4ca13d9d05bc6a4c94cb33eb4eb5cbe, type: 3}
+    description: 
+    volume: 0.831
+  - seId: 2
+    seAudioClip: {fileID: 8300000, guid: a3eaf4e1bc997144fbefe769d72ce960, type: 3}
+    description: 
+    volume: 0.362
+  - seId: 3
+    seAudioClip: {fileID: 8300000, guid: f391496943325c543910160d7e8e56c5, type: 3}
+    description: 
+    volume: 0.514
+  - seId: 4
+    seAudioClip: {fileID: 8300000, guid: 742fb51d2762c9c429a990fd6df69da4, type: 3}
+    description: 
+    volume: 0.5
+  - seId: 5
+    seAudioClip: {fileID: 8300000, guid: da7e527020416104eb4ab11c41770016, type: 3}
+    description: 
+    volume: 0.8
+  - seId: 6
+    seAudioClip: {fileID: 8300000, guid: 2727f187324d7144f8117a54f93f0012, type: 3}
+    description: 
+    volume: 0.8
+  - seId: 7
+    seAudioClip: {fileID: 8300000, guid: ae9db43e146e28c4e84fa25263eb4a87, type: 3}
+    description: 
+    volume: 0.921
+  - seId: 8
+    seAudioClip: {fileID: 8300000, guid: f5d1693abeec4f9468fe06a69ad6327b, type: 3}
+    description: 
+    volume: 0.217
+  - seId: 9
+    seAudioClip: {fileID: 8300000, guid: 09491728db4d07848a183f270d764b00, type: 3}
+    description: 
+    volume: 0.597
+  - seId: 10
+    seAudioClip: {fileID: 8300000, guid: 4044a379bcb410543b1955db28a60232, type: 3}
+    description: 
+    volume: 0.597
+  - seId: 12
+    seAudioClip: {fileID: 8300000, guid: 57c9026e3c747c143ac5cae3af69cb0b, type: 3}
+    description: 
+    volume: 0.969
+  - seId: 11
+    seAudioClip: {fileID: 8300000, guid: 250434672672ee5489bb79260eaa784d, type: 3}
+    description: 
+    volume: 0.597
