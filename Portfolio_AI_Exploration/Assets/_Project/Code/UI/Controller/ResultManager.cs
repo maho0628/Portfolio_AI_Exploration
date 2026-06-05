@@ -27,9 +27,6 @@ public class ResultManager : MonoBehaviour
     private CanvasGroup interventionCanvasGroup;
     private CanvasGroup successRateCanvasGroup;
 
-    private InputAction retryAction;
-    private InputAction backToTitleAction;
-
     [SerializeField] private SceneMap sceneMap;
 
     private void Awake()
@@ -37,21 +34,27 @@ public class ResultManager : MonoBehaviour
         retryCanvasGroup = GetOrAddCanvasGroup(retryButton.gameObject);
         interventionCanvasGroup = GetOrAddCanvasGroup(interventionText.gameObject);
         successRateCanvasGroup = GetOrAddCanvasGroup(successRateText.gameObject);
-        retryAction = InputManager.Instance.GetAction(
-     ActionMapType.Result,
-     InputActionType.Retry);
+        // InputAction取得＆イベント登録
+        InputManager.Instance.Bind(ActionMapType.Result, InputActionType.Retry, OnRetryPerformed);
+        InputManager.Instance.Bind(ActionMapType.Result, InputActionType.BackToTitle, OnBackToTitlePerformed);
 
-        backToTitleAction = InputManager.Instance.GetAction(
-            ActionMapType.Result,
-            InputActionType.BackToTitle);
 
+    }
+    private void OnRetryPerformed(InputAction.CallbackContext _)
+    {
+        Retry();
+    }
+
+    private void OnBackToTitlePerformed(InputAction.CallbackContext _)
+    {
+        BackToTitle();
     }
 
     async void Start()
     {
         SetupResultData();
         SetupTexts();
-      
+
         retryButton.onClick.AddListener(Retry);
         backToTitleButton.onClick.AddListener(BackToTitle);
         // BGM決定
@@ -76,30 +79,14 @@ public class ResultManager : MonoBehaviour
         }
     }
 
-    private void OnEnable()
+    private void OnDestroy()
     {
-        retryAction?.Enable();
-        backToTitleAction?.Enable();
+        retryButton.onClick.RemoveListener(Retry);
+        backToTitleButton.onClick.RemoveListener(BackToTitle);
 
-        if (retryAction != null)
-            retryAction.performed += OnRetryPerformed;
-
-        if (backToTitleAction != null)
-            backToTitleAction.performed += OnBackToTitlePerformed;
+        InputManager.Instance.Unbind(ActionMapType.Result, InputActionType.Retry);
+        InputManager.Instance.Unbind(ActionMapType.Result, InputActionType.BackToTitle);
     }
-
-    private void OnDisable()
-    {
-        if (retryAction != null)
-            retryAction.performed -= OnRetryPerformed;
-
-        if (backToTitleAction != null)
-            backToTitleAction.performed -= OnBackToTitlePerformed;
-
-        retryAction?.Disable();
-        backToTitleAction?.Disable();
-    }
-    
 
     // =========================
     // INTRO
@@ -270,7 +257,11 @@ public class ResultManager : MonoBehaviour
     // =========================
     // INPUT
     // =========================
-  
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.R)) Retry();
+        if (Input.GetKeyDown(KeyCode.T)) BackToTitle();
+    }
 
     public void Retry()
     {
@@ -302,18 +293,6 @@ public class ResultManager : MonoBehaviour
         if (cg == null) cg = obj.AddComponent<CanvasGroup>();
         return cg;
     }
-    private void OnRetryPerformed(InputAction.CallbackContext _)
-    {
-        Retry();
-    }
 
-    private void OnBackToTitlePerformed(InputAction.CallbackContext _)
-    {
-        BackToTitle();
-    }
-    private void OnDestroy()
-    {
-        retryButton.onClick.RemoveListener(Retry);
-        backToTitleButton.onClick.RemoveListener(BackToTitle);
-    }
+
 }

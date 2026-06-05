@@ -4,27 +4,38 @@ using UnityEngine.UI;
 
 public class TitleManager : MonoBehaviour
 {
-
-
     [SerializeField] private Button startButton;
-    private InputAction demoAction;
-    [SerializeField]
-    private Button quitButton;
-
+    [SerializeField] private Button quitButton;
 
     private ExitGame exitGame;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+    private void Start()
     {
-        demoAction = InputManager.Instance.GetAction(ActionMapType.UI, InputActionType.Click);
-        InitializeButtons();
-        exitGame =FindAnyObjectByType<ExitGame>();
+        exitGame = FindAnyObjectByType<ExitGame>();
 
-        AudioManager.Instance.FadeInBGM();
-
-        AudioManager.Instance.PlayBGMIfNotPlaying(BGMName.Title);    
+        // UIボタン設定
         SetupButtonListeners();
 
+        // InputAction取得＆イベント登録
+        InputManager.Instance.Bind(ActionMapType.UI, InputActionType.Click, OnClickAction);
+
+      
+
+        // Audio
+        AudioManager.Instance.FadeInBGM();
+        AudioManager.Instance.PlayBGMIfNotPlaying(BGMName.Title);
+    }
+
+    private void OnDestroy()
+    {
+        // イベント解除
+        InputManager.Instance.Unbind(ActionMapType.UI, InputActionType.Click);
+
+    }
+
+    private void OnClickAction(InputAction.CallbackContext context)
+    {
+        OnStartButtonClicked();
     }
 
     private void SetupButtonListeners()
@@ -35,7 +46,7 @@ public class TitleManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("TitleButton not found!");
+            Debug.LogError("StartButton not found!");
         }
 
         if (quitButton != null)
@@ -47,47 +58,14 @@ public class TitleManager : MonoBehaviour
             Debug.LogError("QuitButton not found!");
         }
     }
+
     private void OnStartButtonClicked()
     {
-
         SceneTransitionManager.Instance.TransitionToNextScene(FadeMode.SimpleColor);
     }
 
     private void OnQuitButtonClicked()
     {
         exitGame.ExitingGame();
-    }
-    private void InitializeButtons()
-    {
-        if (startButton == null)
-        {
-            startButton = FindButtonByName("TitleButton");
-        }
-    }
-
-    private Button FindButtonByName(string buttonName)
-    {
-        GameObject buttonObject = GameObject.Find(buttonName);
-        if (buttonObject != null)
-        {
-            return buttonObject.GetComponent<Button>();
-        }
-
-        Debug.LogWarning($"Button '{buttonName}' not found in scene.");
-        return null;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (demoAction != null && demoAction.IsPressed())
-        {
-            OnStartButtonClicked();
-
-
-        }
-
-
-
     }
 }

@@ -1452,7 +1452,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7773312780728578608, guid: 5f90dc60e6d2a0b4fa7d83574e66ef3c, type: 3}
       propertyPath: m_text
-      value: Title (T)
+      value: Title (Escape)
       objectReference: {fileID: 0}
     - target: {fileID: 7773312780728578608, guid: 5f90dc60e6d2a0b4fa7d83574e66ef3c, type: 3}
       propertyPath: m_fontSize
