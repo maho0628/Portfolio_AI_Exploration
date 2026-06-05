@@ -285,10 +285,7 @@ public abstract class BattleAI : MonoBehaviour
 
     }
 
-    public virtual bool HasWaitInput()
-    {
-        return false;
-    }
+  
 
     public void ActivateAI()
     {

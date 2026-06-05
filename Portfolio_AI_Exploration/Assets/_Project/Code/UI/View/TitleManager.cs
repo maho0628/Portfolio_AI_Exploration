@@ -5,7 +5,6 @@ using UnityEngine.UI;
 public class TitleManager : MonoBehaviour
 {
 
-    [SerializeField] private InputActionAsset inputActions;
 
     [SerializeField] private Button startButton;
     private InputAction demoAction;
@@ -17,7 +16,7 @@ public class TitleManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        demoAction = inputActions.FindAction("Click"); 
+        demoAction = InputManager.Instance.GetAction(ActionMapType.UI, InputActionType.Click);
         InitializeButtons();
         exitGame =FindAnyObjectByType<ExitGame>();
 

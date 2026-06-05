@@ -10,7 +10,6 @@ using UnityEngine.Rendering;
 /// </summary>
 public class BattleAITest : BattleAI
 {
-    [SerializeField] private InputActionAsset inputActions;
     [SerializeField]
     private TPTextPool tpTextPool;
     private InputAction demoAction;
@@ -21,7 +20,7 @@ public class BattleAITest : BattleAI
         Debug.Log("BattleAI Test Awake");
         Debug.Log($"[AI] Initial State = {currentState?.GetType().Name}");
 
-        demoAction = inputActions.FindAction("Skill"); // "Skill" は InputAction 名
+        demoAction = InputManager.Instance .GetAction(ActionMapType.Battle,InputActionType.Ultimate );
     }
 
     private void OnEnable()
@@ -92,8 +91,7 @@ public class BattleAITest : BattleAI
         AudioManager.Instance.PlaySEById(SEName.PlayerDeath);
 
     }
-    public override bool HasWaitInput()
-    {
-        return Input.GetKeyDown(KeyCode.W); // これは仮入力のまま
-    }
+
+
+
 }

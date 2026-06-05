@@ -14,10 +14,7 @@ public class EnemyBattleAI : BattleAI
 
     }
 
-    public override bool HasWaitInput()
-    {
-        return false; // 敵は待たない
-    }
+
 
     internal override void PlayDamageReaction()
     {

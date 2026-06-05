@@ -4,6 +4,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class ResultManager : MonoBehaviour
@@ -26,6 +27,9 @@ public class ResultManager : MonoBehaviour
     private CanvasGroup interventionCanvasGroup;
     private CanvasGroup successRateCanvasGroup;
 
+    private InputAction retryAction;
+    private InputAction backToTitleAction;
+
     [SerializeField] private SceneMap sceneMap;
 
     private void Awake()
@@ -33,7 +37,13 @@ public class ResultManager : MonoBehaviour
         retryCanvasGroup = GetOrAddCanvasGroup(retryButton.gameObject);
         interventionCanvasGroup = GetOrAddCanvasGroup(interventionText.gameObject);
         successRateCanvasGroup = GetOrAddCanvasGroup(successRateText.gameObject);
+        retryAction = InputManager.Instance.GetAction(
+     ActionMapType.Result,
+     InputActionType.Retry);
 
+        backToTitleAction = InputManager.Instance.GetAction(
+            ActionMapType.Result,
+            InputActionType.BackToTitle);
 
     }
 
@@ -41,7 +51,7 @@ public class ResultManager : MonoBehaviour
     {
         SetupResultData();
         SetupTexts();
-
+      
         retryButton.onClick.AddListener(Retry);
         backToTitleButton.onClick.AddListener(BackToTitle);
         // BGM決定
@@ -65,6 +75,31 @@ public class ResultManager : MonoBehaviour
             await PlayGoalPresentation();
         }
     }
+
+    private void OnEnable()
+    {
+        retryAction?.Enable();
+        backToTitleAction?.Enable();
+
+        if (retryAction != null)
+            retryAction.performed += OnRetryPerformed;
+
+        if (backToTitleAction != null)
+            backToTitleAction.performed += OnBackToTitlePerformed;
+    }
+
+    private void OnDisable()
+    {
+        if (retryAction != null)
+            retryAction.performed -= OnRetryPerformed;
+
+        if (backToTitleAction != null)
+            backToTitleAction.performed -= OnBackToTitlePerformed;
+
+        retryAction?.Disable();
+        backToTitleAction?.Disable();
+    }
+    
 
     // =========================
     // INTRO
@@ -235,11 +270,7 @@ public class ResultManager : MonoBehaviour
     // =========================
     // INPUT
     // =========================
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.R)) Retry();
-        if (Input.GetKeyDown(KeyCode.T)) BackToTitle();
-    }
+  
 
     public void Retry()
     {
@@ -270,5 +301,19 @@ public class ResultManager : MonoBehaviour
         var cg = obj.GetComponent<CanvasGroup>();
         if (cg == null) cg = obj.AddComponent<CanvasGroup>();
         return cg;
+    }
+    private void OnRetryPerformed(InputAction.CallbackContext _)
+    {
+        Retry();
+    }
+
+    private void OnBackToTitlePerformed(InputAction.CallbackContext _)
+    {
+        BackToTitle();
+    }
+    private void OnDestroy()
+    {
+        retryButton.onClick.RemoveListener(Retry);
+        backToTitleButton.onClick.RemoveListener(BackToTitle);
     }
 }

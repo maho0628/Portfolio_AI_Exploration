@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class GameInitializer : SingletonMonoBehaviour<GameInitializer>
@@ -14,12 +15,11 @@ public class GameInitializer : SingletonMonoBehaviour<GameInitializer>
 
     internal void SetUpGameInitialize()
     {
-        if (isInitialized)return;
+        if (isInitialized) return;
 
         // 既存のリソースロード
 
         gameSettings = Resources.Load<GameSettings>("ScriptableObject/gameSettings");
-
 
         bgmConfigTable = gameSettings.BgmConfigTable;
 
@@ -32,10 +32,11 @@ public class GameInitializer : SingletonMonoBehaviour<GameInitializer>
         audio.SetupBGMConfigTable(bgmConfigTable);
 
         audio.SetupSEConfigTable(seConfigTable);
-        
-        
-       
 
+
+        InputActionAsset inputAsset = gameSettings.InputActionAsset;
+
+        InputManager.Instance.Initialize(inputAsset);
 
         isInitialized = true;
     }

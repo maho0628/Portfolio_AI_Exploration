@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// ゲームの初期設定クラス
@@ -55,6 +56,11 @@ public class GameSettings : ScriptableObject
     [SerializeField]
     private SEConfigTable seConfigTable;
 
+
+    [SerializeField]
+    private InputActionAsset inputActionAsset;
+
+
     [SerializeField, Tooltip("BGMフェード時間（秒）")]
     [Range(0f, 2f)]
     private float bgmFadeDuration = 0.3f;
@@ -95,6 +101,10 @@ public class GameSettings : ScriptableObject
 
 
     internal float BgmFadeDuration => bgmFadeDuration;
+
+
+    internal InputActionAsset InputActionAsset => inputActionAsset;
+
     #endregion
 
 }
