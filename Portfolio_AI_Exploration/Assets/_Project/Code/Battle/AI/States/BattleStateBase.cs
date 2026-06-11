@@ -10,6 +10,10 @@ public abstract class BattleStateBase
     /// </summary>
     protected BattleAI owner;
 
+    /// <summary>
+    /// バトルAIを渡す
+    /// </summary>
+    /// <param name="owner"></param>
     protected BattleStateBase(BattleAI owner)
     {
         this.owner = owner;
@@ -21,6 +25,13 @@ public abstract class BattleStateBase
     /// </summary>
     public abstract void Tick();
 
+    /// <summary>
+    /// ステートに入るとき
+    /// </summary>
     public virtual void OnEnter() { }
+
+    /// <summary>
+    /// ステートから抜けるとき（てかステートに抜ける時に処理挟んでないからバグった説）
+    /// </summary>
     public virtual void OnExit() { }
 }
