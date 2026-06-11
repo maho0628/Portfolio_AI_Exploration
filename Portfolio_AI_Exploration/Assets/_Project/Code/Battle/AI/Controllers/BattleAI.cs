@@ -266,72 +266,42 @@ public abstract class BattleAI : MonoBehaviour
         // ただし「スキル決定」自体をBattleAIが持つ設計が適切かは要検討
 
         if (currentState == SkillState)
-        { 
-            return false; 
+        {
+            return false;
         }
 
         //まずUB条件だけを最優先で確定させる
         // ---- ここから ----てかなんでIFelseでUBかどうか判定してないんだろう？→関数切り出しでこの違和感が消える可能性大
         // manual入力取得しているが現在未使用
-        // 以前はUB発動条件に含める予定だった可能性あり
-        bool hasManualInput =
-        ConsumeManualSkillRequest();
+        //// 以前はUB発動条件に含める予定だった可能性あり
+        ///// HoldState経由の介入仕様へ移行予定のため保留。
+        //bool hasManualInput =
+        //ConsumeManualSkillRequest();
         // 現在のUB発動条件はTP満タンのみ
         // 手動介入成功との関係は要確認
         //ゲージフルかどうか確認
         bool gaugeFull = IsGaugeFull();
 
+        if (gaugeFull && TryStartUltimate())
+        {
+            return true;
+        }
         //デバッグログ一旦は残すけど後で削除すること
 
         //Debug.Log($"[UB CHECK] TP:{Blackboard.CurrentTP}/{Blackboard.MaxTP} manual:{hasManualInput} full:{gaugeFull}");
 
-        if (gaugeFull)
-        {
-            //スキルがUBかどうか確認
-            var ultimate = skills.FirstOrDefault(s => s.skillType == SkillType.Ultimate);
-
-            //スキルのタイプがUBかつUBプレイ中で無ければ
-            if (ultimate != null && !isPlayingUltimate)
-            {
-                //UBプレイ中にする
-                isPlayingUltimate = true;
-
-
-                //UBの演出を再生
-                ultimatePresentation.Play().Forget();
-
-                //UBスキルをスキルステートに設定
-                SkillState.SetSkill(ultimate);
-
-                //デバッグログ一旦は残すけど後で削除すること
-                //Debug.Log($"{name} Change To SkillState");
-
-                //スキルステートに変更
-                ChangeState(SkillState);
-
-                //スキル決定したのでフラグをトゥルーにしてこれ以下は無視する
-                return true; 
-            }
-
-        }
+       
 
         // ---- ここまでUB ----
 
         // ---- ここから下は通常スキルだけ ----
-        SkillSO nextSkill = null;
-        int safety = 0;
+        SkillSO nextSkill = GetNextNormalSkill();
+
+        Debug.Log(nextSkill);
+        //int safety = 0;
 
 
-        //ぱっと見たときにUBじゃないスキルを取得しているのがわかりずらいから、関数切り出しで対応予定
-        do
-        {
-            nextSkill = skills[skillIndex];
-            skillIndex = (skillIndex + 1) % skills.Count;
-            safety++;
-        }
-        while (nextSkill.skillType == SkillType.Ultimate && safety < skills.Count);
 
-        // ---- ここまで関数切り出し予定 ----
 
         //スキルの中身が何もないなら決まってないとみなしてFalseを返す
         if (nextSkill == null)
@@ -339,17 +309,62 @@ public abstract class BattleAI : MonoBehaviour
             return false;
         }
 
-        //通常スキルをスキルステートに設定
-        SkillState.SetSkill(nextSkill);
+        return StartSkill(nextSkill);
+    }
 
-        //スキルステートに変更
+    private bool StartSkill(SkillSO skill)
+    {
+        if (skill == null)
+        {
+            return false;
+        }
 
+        SkillState.SetSkill(skill);
         ChangeState(SkillState);
-        //スキル決定したのでフラグをトゥルーにしてこれ以下は無視する
 
         return true;
     }
+    private bool TryStartUltimate()
+    {
+        var ultimate =
+            skills.FirstOrDefault(s => s.skillType == SkillType.Ultimate);
 
+        if (ultimate == null)
+        {
+            return false;
+        }
+
+        isPlayingUltimate = true;
+
+        ultimatePresentation.Play().Forget();
+
+        return StartSkill(ultimate);
+        
+    }
+    /// <summary>
+    /// 通常スキル
+
+    /// </summary>
+    /// <returns></returns>
+    private SkillSO GetNextNormalSkill()
+    {
+        SkillSO nextSkill = null;
+        int safety = 0;
+
+        while (safety < skills.Count)
+        {
+            nextSkill = skills[skillIndex];
+            skillIndex = (skillIndex + 1) % skills.Count;
+            safety++;
+
+            if (nextSkill.skillType != SkillType.Ultimate)
+            {
+                return nextSkill;
+            }
+        }
+
+        return null;
+    }
     /// <summary>
     /// ここは内容込みで合ってそう。ただChangeStateを呼ぶタイミングは要検討
     /// Stateを切り替える唯一の窓口。
