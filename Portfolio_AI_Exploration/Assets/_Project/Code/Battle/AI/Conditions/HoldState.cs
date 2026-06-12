@@ -26,7 +26,7 @@ public class HoldState : BattleStateBase
     public override void OnEnter()
     {
         timer = 0f;
-        Debug.Log($"[Hold] Start (duration={owner.CurrentAction?.duration})");
+        owner.SetInterventionWindow(true);
     }
 
     /// <summary>
@@ -35,34 +35,28 @@ public class HoldState : BattleStateBase
     public override void Tick()
     {
 
-        // 介入成功時に手動介入要求を認めたら
-        // Holdを即終了してIdleへ戻す
-        if (owner.ConsumeManualSkillRequest())
+        if (owner.ConsumeManualSkillRequest()
+            && owner.IsGaugeFull())
         {
-            Debug.Log("[Hold] Interrupt: ManualSkill");
-
-
-
-            owner.ClearCurrentAction();
-
-            owner.ChangeState(owner.IdleState);
-
-            return;
+            owner.SetPendingSkill(
+                owner.GetUltimateSkill()
+            );
         }
+     
 
         timer += Time.deltaTime;
 
-        //一定時間経過したらアイドルに戻す
-        //// この処理自体は必要そう
-        // ただ HoldState の責務が今後増えるなら
-        // タイムアウトだけで終わる設計かは要検証
-
-        if (timer >= owner.CurrentAction.duration)
+        if (timer >= owner.GetPendingSkill().CastTime)
         {
-            Debug.Log("[Hold] Timeout -> Idle");
-            owner.ClearCurrentAction();
-            owner.ChangeState(owner.IdleState);
+
+            Debug.Log($"pendingSkill = {owner.GetPendingSkill()}");
+
+            owner.SkillState.SetSkill(
+                owner.GetPendingSkill());
+
+            owner.ChangeState(owner.SkillState);
         }
+
         
     }
 
@@ -72,5 +66,7 @@ public class HoldState : BattleStateBase
     public override void OnExit()
     {
         Debug.Log("Hold End");
+        owner.SetInterventionWindow(false);
+
     }
 }

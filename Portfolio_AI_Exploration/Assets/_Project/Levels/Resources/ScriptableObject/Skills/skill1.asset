@@ -12,14 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0c337bcecaecda448d4a09d93e9245d, type: 3}
   m_Name: skill1
   m_EditorClassIdentifier: 
-  skillType: 1
-  power: 170
-  damageType: 0
-  targetType: 1
+  skillCategory: 1
+  multiplier: 170
   tpGainOnHit: 120
-  duration: 1.23
-  animationName: 
-  interventionWindow: 0.3
-  interventionTiming: 0.5
-  canBeInterrupted: 0
-  canInterruptOthers: 0
+  castTime: 1.23

@@ -12,12 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0c337bcecaecda448d4a09d93e9245d, type: 3}
   m_Name: enemy_normal
   m_EditorClassIdentifier: 
-  skillType: 0
-  power: 100
-  damageType: 0
-  targetType: 1
+  skillCategory: 0
+  multiplier: 100
   tpGainOnHit: 90
-  duration: 1
-  animationName: 
-  canBeInterrupted: 0
-  canInterruptOthers: 0
+  castTime: 1

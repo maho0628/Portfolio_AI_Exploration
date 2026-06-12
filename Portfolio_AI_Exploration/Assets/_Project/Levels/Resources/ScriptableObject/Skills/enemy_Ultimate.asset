@@ -12,12 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0c337bcecaecda448d4a09d93e9245d, type: 3}
   m_Name: enemy_Ultimate
   m_EditorClassIdentifier: 
-  skillType: 3
-  power: 350
-  damageType: 0
-  targetType: 0
+  skillCategory: 3
+  multiplier: 350
   tpGainOnHit: 0
-  duration: 1
-  animationName: 
-  canBeInterrupted: 0
-  canInterruptOthers: 0
+  castTime: 1

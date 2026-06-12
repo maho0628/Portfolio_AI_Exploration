@@ -1,5 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine;
 
+
+/// <summary>
+/// キャラクターごとのスクリプタブルオブジェクト
+/// </summary>
 [CreateAssetMenu(menuName = "Battle/Character Status")]
 public class CharacterStatusSO : ScriptableObject
 {
@@ -14,7 +19,7 @@ public class CharacterStatusSO : ScriptableObject
     [SerializeField] private int tpMax;
 
     [Header("Skills")]
-    [SerializeField] private SkillSO[] skillLoop;
+    [SerializeField] private List<SkillSO> skillLoop= new List<SkillSO>();
 
     public int MaxHP => maxHP;
     public int PhysicalAttack => physicalAttack;
@@ -22,5 +27,5 @@ public class CharacterStatusSO : ScriptableObject
     public int PhysicalDefense => physicalDefense;
     public int MagicDefense => magicDefense;
     public int TPMax => tpMax;
-    public SkillSO[] SkillLoop => skillLoop;
+    public List<SkillSO> SkillLoop => skillLoop;
 }

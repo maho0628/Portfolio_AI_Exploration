@@ -23,10 +23,7 @@ public abstract class BattleAI : MonoBehaviour
     [SerializeField]
     protected CharacterStatusSO status;
 
-    /// <summary>
-    /// CharacterStatusSO内のスキルループを配列からリストにしてる？まあ実質バトルAIで使えるようにするがこの変数の意味敵に正しそう
-    /// </summary>
-    private List<SkillSO> skills = new List<SkillSO>();
+
 
     /// <summary>
     /// 被弾エフェクトのスクリプタブルオブジェクト
@@ -125,6 +122,8 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     private bool isDead;
 
+    private SkillSO pendingSkill;
+
     protected virtual void Awake()
     {
         // Stateは一度だけ生成（使い捨てしない）
@@ -137,13 +136,10 @@ public abstract class BattleAI : MonoBehaviour
         //TODO: Idle代入は不要では？
         currentState = idleState;
 
-        currentState = holdState;
         //初期設定を呼び出し
         Initialize();
 
-        //スキルループを配列からリストに？（そもそもスキルループ側リストで宣言すればいいやん
 
-        skills = status.SkillLoop.ToList();
 
 
         //デバッグログ一旦は残すけど後で削除すること
@@ -224,6 +220,24 @@ public abstract class BattleAI : MonoBehaviour
         manualSkillRequested = true;
     }
 
+    public void SetPendingSkill(SkillSO skill)
+    {
+        pendingSkill = skill;
+    }
+
+    public SkillSO GetPendingSkill()
+    {
+        return pendingSkill;
+    }
+
+    public SkillSO GetUltimateSkill()
+    {
+
+        return status.SkillLoop.FirstOrDefault(
+            s => s.SkillCategory == SkillType.Ultimate
+        );
+    }
+
     /// <summary>
     /// 手動介入要求を消費したかどうかを判断して真偽値として返す（そもそもこの書き方でいいのかすごい疑問If,elseにするとかそもそもRequestManualSkillこれを使わずに別々で管理してるところとか,引数持たせてないところとか本当にこれでいいのか？
     /// </summary>
@@ -253,6 +267,8 @@ public abstract class BattleAI : MonoBehaviour
     /// <returns></returns>
     public bool TryDecideSkill()
     {
+
+
         //UB再生中ならskill決定しない
         if (isPlayingUltimate)
         {
@@ -282,6 +298,8 @@ public abstract class BattleAI : MonoBehaviour
         //ゲージフルかどうか確認
         bool gaugeFull = IsGaugeFull();
 
+        Debug.Log("TryStartUltimate");
+        Debug.Log($"gaugeFull={gaugeFull}");
         if (gaugeFull && TryStartUltimate())
         {
             return true;
@@ -290,7 +308,7 @@ public abstract class BattleAI : MonoBehaviour
 
         //Debug.Log($"[UB CHECK] TP:{Blackboard.CurrentTP}/{Blackboard.MaxTP} manual:{hasManualInput} full:{gaugeFull}");
 
-       
+
 
         // ---- ここまでUB ----
 
@@ -318,17 +336,15 @@ public abstract class BattleAI : MonoBehaviour
         {
             return false;
         }
-
-        SkillState.SetSkill(skill);
-        ChangeState(SkillState);
+        Debug.Log(skill);
+        SetPendingSkill(skill);
+        ChangeState(HoldState);
 
         return true;
     }
     private bool TryStartUltimate()
     {
-        var ultimate =
-            skills.FirstOrDefault(s => s.skillType == SkillType.Ultimate);
-
+        var ultimate =GetUltimateSkill();
         if (ultimate == null)
         {
             return false;
@@ -339,7 +355,7 @@ public abstract class BattleAI : MonoBehaviour
         ultimatePresentation.Play().Forget();
 
         return StartSkill(ultimate);
-        
+
     }
     /// <summary>
     /// 通常スキル
@@ -351,13 +367,13 @@ public abstract class BattleAI : MonoBehaviour
         SkillSO nextSkill = null;
         int safety = 0;
 
-        while (safety < skills.Count)
+        while (safety < status.SkillLoop.Count)
         {
-            nextSkill = skills[skillIndex];
-            skillIndex = (skillIndex + 1) % skills.Count;
+            nextSkill = status.SkillLoop[skillIndex];
+            skillIndex = (skillIndex + 1) % status.SkillLoop.Count;
             safety++;
 
-            if (nextSkill.skillType != SkillType.Ultimate)
+            if (nextSkill.SkillCategory != SkillType.Ultimate)
             {
                 return nextSkill;
             }
@@ -443,7 +459,7 @@ public abstract class BattleAI : MonoBehaviour
 
 
         //必殺技なら
-        if (skill.skillType == SkillType.Ultimate)
+        if (skill.SkillCategory == SkillType.Ultimate)
         {
             //必殺技時の攻撃SEを流す
             AudioManager.Instance.PlaySEById(SEName.UBImpact);
@@ -462,7 +478,7 @@ public abstract class BattleAI : MonoBehaviour
 
         //実際に与えることのできる力の最大：攻撃力＊スキルの倍率＊１００（マジックナンバーだし、何で？）
 
-        int scaled = attack * skill.power / 100;
+        int scaled = attack * skill.MultiPlier / 100;
 
         //Refactor: ここシリアライズフィールドで書いてるけど将来データ駆動
 
@@ -579,7 +595,7 @@ public abstract class BattleAI : MonoBehaviour
         //TPを各skillごとの手に入れれるTP分加算（うーん個々の書き方はスキルステートとともに要検討かな
         blackboard.AddTP(
             SkillState.GetCurrentSkill()
-            .tpGainOnHit
+            .TPGainOnHit
         );
     }
 

@@ -57,6 +57,8 @@ public class SkillState : BattleStateBase
     /// </summary>
     public override void OnEnter()
     {
+        Debug.Log($"currentSkill = {currentSkill}");
+
         //スキル実行中を解除
         executed = false;
 
@@ -64,7 +66,7 @@ public class SkillState : BattleStateBase
         timer = 0f;
 
         //UBならTPを０にしてTickが続きの処理を行う
-        if (currentSkill.skillType == SkillType.Ultimate)
+        if (currentSkill.SkillCategory == SkillType.Ultimate)
         {
             owner.Blackboard.ResetTP();
         }
@@ -83,6 +85,7 @@ public class SkillState : BattleStateBase
     /// </summary>
     public override void Tick()
     {
+        Debug.Log($"currentSkill = {currentSkill}");
 
         //キャラ自体が死亡していれば処理をさせない
         if (owner.Blackboard.IsDead)
@@ -93,19 +96,11 @@ public class SkillState : BattleStateBase
         //① タイマー加算
         timer += Time.deltaTime;
 
-        //この計算式関数でまとめれそうかな（とはいえ変数何してるか忘れた→もともとの仕様ではこの処理いらないので削除を検討予定
-        float hitTiming =currentSkill.duration * currentSkill.InterventionTiming;
-
-        float window =currentSkill.InterventionWindow;
-
-        bool inWindow =   timer >= hitTiming - window &&    timer <= hitTiming + window;
-
-        //ここまで
-        owner.SetInterventionWindow(inWindow);
+    
         //なぜ0.5マジックナンバーすぎるでしょ
         //スキル実行中ではなくてかつスキル手動介入実行時間をタイマーがオーバーしたら
         // 途中で攻撃発生
-        if (!executed && timer >= currentSkill.duration * 0.5f)
+        if (!executed && timer >= currentSkill.CastTime * 0.5f)
         {
             //スキル実行中フラグをオンにする
             executed = true;
@@ -118,7 +113,7 @@ public class SkillState : BattleStateBase
         }
 
         // スキルが実行され終わっているはず
-        if (timer >= currentSkill.duration)
+        if (timer >= currentSkill.CastTime)
         {
             //UBをもう一度打てるようにフラグをリセット
             owner.ResetUltimateLock();

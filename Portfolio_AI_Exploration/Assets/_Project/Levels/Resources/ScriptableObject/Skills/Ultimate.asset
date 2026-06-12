@@ -12,14 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0c337bcecaecda448d4a09d93e9245d, type: 3}
   m_Name: Ultimate
   m_EditorClassIdentifier: 
-  skillType: 3
-  power: 420
-  damageType: 0
-  targetType: 0
+  skillCategory: 3
+  multiplier: 420
   tpGainOnHit: 0
-  duration: 3
-  animationName: 
-  interventionWindow: 0.7
-  interventionTiming: 0.5
-  canBeInterrupted: 1
-  canInterruptOthers: 0
+  castTime: 3
