@@ -15,7 +15,7 @@ public class RemoveMissingScripts
             {
                 int count = GameObjectUtility.RemoveMonoBehavioursWithMissingScript(child.gameObject);
                 if (count > 0)
-                    Debug.Log(child.name + ": Removed " + count + " missing scripts");
+                    DebugManager.Log(child.name + ": Removed " + count + " missing scripts");
             }
         }
     }

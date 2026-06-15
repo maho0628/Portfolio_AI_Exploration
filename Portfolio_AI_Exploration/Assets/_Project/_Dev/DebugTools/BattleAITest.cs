@@ -9,8 +9,8 @@ public class BattleAITest : BattleAI
     {
         base.Awake();
 
-        Debug.Log("BattleAI Test Awake");
-        Debug.Log($"[AI] Initial State = {currentState?.GetType().Name}");
+        DebugManager.Log("BattleAI Test Awake");
+        DebugManager.Log($"[AI] Initial State = {currentState?.GetType().Name}");
     }
 
     private void Start()

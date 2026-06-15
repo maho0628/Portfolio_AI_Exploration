@@ -176,7 +176,7 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
     protected override void Awake()
     {
         base.Awake();
-        Debug.Log("AudioManager Awake");
+        DebugManager.Log("AudioManager Awake");
         gameSettings = GameInitializer.Instance.GetGameSettings();
         InitializeAudioSources();
         InitializeAudioVolumes();
@@ -361,7 +361,6 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
 
         //現在のBGMIDを登録
         currentBgmId = bgmId;
-        Debug.Log(currentBgmId);
     }
 
     public void FadeInBGM()

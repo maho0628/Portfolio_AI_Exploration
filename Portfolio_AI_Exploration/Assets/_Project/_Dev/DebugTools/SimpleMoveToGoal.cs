@@ -68,11 +68,11 @@ public class SimpleMoveToGoal : MonoBehaviour
             hasStartedMoving = false; 
             agent.SetDestination(CurrentTarget.position);
 
-            Debug.Log(ExplorationData.currentRouteIndex);
+            DebugManager.Log(ExplorationData.currentRouteIndex.ToString());
 
-            Debug.Log($"Next Target : {CurrentTarget.name}");
-            Debug.Log($"Player Pos  : {transform.position}");
-            Debug.Log($"Target Pos  : {CurrentTarget.position}");
+            DebugManager.Log($"Next Target : {CurrentTarget.name}");
+            DebugManager.Log($"Player Pos  : {transform.position}");
+            DebugManager.Log($"Target Pos  : {CurrentTarget.position}");
         }
     }
 
@@ -88,7 +88,7 @@ public class SimpleMoveToGoal : MonoBehaviour
         {
             case MoveState.Moving:
                 // 移動中処理
-                Debug.Log("State: Moving - 移動中");
+                DebugManager.Log("State: Moving - 移動中");
 
                 footstepTimer += Time.deltaTime;
 
@@ -103,12 +103,12 @@ public class SimpleMoveToGoal : MonoBehaviour
 
             case MoveState.Arrived:
                 // 到達成功時の処理
-                Debug.Log("State: Arrived - 到達成功");
+                DebugManager.Log("State: Arrived - 到達成功");
                 break;
 
             case MoveState.Blocked:
                 // 到達不能時の処理
-                Debug.Log("State: Blocked - 到達不能");
+                DebugManager.Log("State: Blocked - 到達不能");
                 agent.isStopped = true; // 仮処理、本番では StateMachine で制御
                 break;
         }
@@ -118,13 +118,7 @@ public class SimpleMoveToGoal : MonoBehaviour
         // ---------------------------
         if (state != previousState)
         {
-            //Debug.Log(
-            //    $"[Debug] State changed: {previousState} -> {state}, " +
-            //    $"RemainingDistance: {agent.remainingDistance}, " +
-            //    $"StoppingDistance: {agent.stoppingDistance}, " +
-            //    $"HasPath: {agent.hasPath}, " +
-            //    $"IsStopped: {agent.isStopped}"
-            //);
+           
             previousState = state;
         }
     }
@@ -222,7 +216,7 @@ public class SimpleMoveToGoal : MonoBehaviour
 
         hasArrivedHandled = true;
 
-        Debug.Log("State: Arrived - 到達成功");
+        DebugManager.Log("State: Arrived - 到達成功");
 
         if (CurrentTarget != null)
         {
@@ -240,7 +234,7 @@ public class SimpleMoveToGoal : MonoBehaviour
         switch (role)
         {
             case InteractRole.Enemy:
-                Debug.Log("Enemy reached → BattleScene");
+                DebugManager.Log("Enemy reached → BattleScene");
                 AudioManager.Instance.PlaySEById(SEName.EnemyEncounter);
                 ExplorationData.playerPosition = transform.position;
                 if (SceneTransitionManager.Instance.IsTransitioning) return;
@@ -253,7 +247,7 @@ public class SimpleMoveToGoal : MonoBehaviour
 
                 BattleResultData.resultType = ResultType.Goal;
                 if (SceneTransitionManager.Instance.IsTransitioning) return;
-                Debug.Log("Goal reached → ResultScene");
+                DebugManager.Log("Goal reached → ResultScene");
 
                 SceneTransitionManager.Instance.TransitionTo(sceneMap.Get(SceneMap.SceneKey.Result));
                 break;

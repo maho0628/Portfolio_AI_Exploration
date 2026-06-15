@@ -68,7 +68,7 @@ public class BattleBlackboard
         if (IsDead) return;
 
         CurrentHP = Mathf.Max(CurrentHP - amount, 0);
-        Debug.Log($"HP:{CurrentHP}/{MaxHP}");
+        DebugManager.Log($"HP:{CurrentHP}/{MaxHP}");
 
         OnHPChanged?.Invoke(owner, CurrentHP, MaxHP);
 
@@ -95,16 +95,12 @@ public class BattleBlackboard
             return;
         }
         CurrentTP = Mathf.Min(CurrentTP + amount, MaxTP);
-        //デバッグログは必要時にコメントアウト化解除
-        //Debug.Log($"{owner.name} TP +{amount} / Current:{CurrentTP}");
+      
 
 
         //TPの数値変更を通知
         OnTPChanged?.Invoke(CurrentTP, MaxTP);
-        //デバッグログは必要時にコメントアウト化解除
-
-        //Debug.Log($"skills:{CurrentTP}");
-    }
+        }
 
 
     /// UB使用時にTPを初期化するための関数（ バトルシステム専用のクラスが持つべき）

@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// 各skillの詳細情報のスクリプタブルオブジェクト
+/// 各スキルの詳細情報のスクリプタブルオブジェクト
 /// </summary>
 [CreateAssetMenu(menuName = "Battle/Skill")]
 public class SkillSO : ScriptableObject
@@ -15,10 +15,11 @@ public class SkillSO : ScriptableObject
 
 
     /// <summary>
-    /// 威力倍率
+    /// 威力倍率（1.0 = 100%）
     /// </summary>
-    [SerializeField, Tooltip("威力倍率")]
-    private int multiplier;
+    [SerializeField, Tooltip("威力倍率（1.0 = 100%）")]
+    [Range(0f, 20f)]
+    private float multiplier;
 
 
     /// <summary>
@@ -49,9 +50,9 @@ public class SkillSO : ScriptableObject
 
 
     /// <summary>
-    /// 威力倍率
+    /// 威力倍率（1.0 = 100%）
     /// </summary>
-    internal int MultiPlier => multiplier;
+    internal float Multiplier => multiplier;
 
     /// <summary>
     /// 行動で増加するゲージ

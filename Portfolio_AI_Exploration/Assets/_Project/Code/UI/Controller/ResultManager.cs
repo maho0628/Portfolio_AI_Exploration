@@ -205,8 +205,10 @@ public class ResultManager : MonoBehaviour
     {
         int interventionCount = BattleResultData.interventionCount;
         int successCount = BattleResultData.successCount;
-
-        Debug.Log(successCount);
+        DebugManager.Log(
+    $"intervention={interventionCount} success={successCount}"
+);
+        DebugManager.Log(successCount.ToString());
         float successRate = interventionCount > 0
             ? (float)successCount / interventionCount * 100f
             : 0f;
@@ -227,7 +229,7 @@ public class ResultManager : MonoBehaviour
             if (data.resultType == type)
                 return data;
 
-        Debug.LogWarning($"ResultDisplayData not found : {type}");
+        DebugManager.LogWarning($"ResultDisplayData not found : {type}");
         return null;
     }
 

@@ -12,6 +12,6 @@ public class BattleResultData
         resultType = ResultType.Defeat;
         interventionCount = 0;
         successCount = 0;
-        Debug.Log($"ResultType Reset: {resultType}");
+        DebugManager.Log($"ResultType Reset: {resultType}");
     }
 }

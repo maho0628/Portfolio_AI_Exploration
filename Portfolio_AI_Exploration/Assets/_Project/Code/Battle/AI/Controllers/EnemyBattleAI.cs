@@ -50,7 +50,7 @@ public class EnemyBattleAI : BattleAI
     }
     public override void ReceivePlayerCommand(PlayerCommand command)
     {
-        Debug.LogError("Enemy received input!?");
+        DebugManager.LogError("Enemy received input!?");
     }
     public override BattleAction GetDefaultAction()
     {

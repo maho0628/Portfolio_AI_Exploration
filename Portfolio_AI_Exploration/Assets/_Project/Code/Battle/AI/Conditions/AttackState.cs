@@ -28,7 +28,7 @@ public class AttackState : BattleStateBase
     public override void OnEnter()
     {
         timer = 0f;
-        Debug.Log("Attack Start");
+        DebugManager.Log("Attack Start");
     }
 
     /// <summary>
@@ -54,6 +54,6 @@ public class AttackState : BattleStateBase
     /// </summary>
     public override void OnExit()
     {
-        Debug.Log("Attack End");
+        DebugManager.Log("Attack End");
     }
 }

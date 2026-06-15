@@ -49,7 +49,6 @@ public class HoldState : BattleStateBase
         if (timer >= owner.GetPendingSkill().CastTime)
         {
 
-            Debug.Log($"pendingSkill = {owner.GetPendingSkill()}");
 
             owner.SkillState.SetSkill(
                 owner.GetPendingSkill());
@@ -65,7 +64,7 @@ public class HoldState : BattleStateBase
     /// </summary>
     public override void OnExit()
     {
-        Debug.Log("Hold End");
+        DebugManager.Log("Hold End");
         owner.SetInterventionWindow(false);
 
     }

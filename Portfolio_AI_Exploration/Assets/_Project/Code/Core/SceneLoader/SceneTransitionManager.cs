@@ -42,13 +42,13 @@ public class SceneTransitionManager : SingletonMonoBehaviour<SceneTransitionMana
 
         if (settings == null)
         {
-            Debug.LogError("SceneTransitionSettings が見つかりません");
+            DebugManager.LogError("SceneTransitionSettings が見つかりません");
 
         }
 
         if (database == null)
         {
-            Debug.LogError("SceneDatabase が見つかりません");
+            DebugManager.LogError("SceneDatabase が見つかりません");
 
         }
     }
@@ -83,10 +83,9 @@ public class SceneTransitionManager : SingletonMonoBehaviour<SceneTransitionMana
         string current = SceneManager.GetActiveScene().name;
         
         SceneObject next = database.GetNextScene(current);
-        Debug.Log(next.SceneName);
         if (next == null)
         {
-            Debug.LogWarning($"Next scene not found from '{current}'");
+            DebugManager.LogWarning($"Next scene not found from '{current}'");
             return;
         }
 
@@ -102,7 +101,7 @@ public class SceneTransitionManager : SingletonMonoBehaviour<SceneTransitionMana
 
         if (next == null)
         {
-            Debug.LogWarning($"Next scene not found from '{current}'");
+            DebugManager.LogWarning($"Next scene not found from '{current}'");
             return;
         }
 
@@ -120,7 +119,7 @@ public class SceneTransitionManager : SingletonMonoBehaviour<SceneTransitionMana
 
         if (prev == null)
         {
-            Debug.LogWarning($"Previous scene not found from '{current}'");
+            DebugManager.LogWarning($"Previous scene not found from '{current}'");
             return;
         }
 
@@ -158,11 +157,11 @@ public class SceneTransitionManager : SingletonMonoBehaviour<SceneTransitionMana
         }
         catch (System.Exception e)
         {
-            Debug.Log($" Exception: {e}");
+            DebugManager.Log($" Exception: {e}");
         }
         finally
         {
-            Debug.Log(" isTransitioning falseに戻す");
+            DebugManager.Log(" isTransitioning falseに戻す");
             isTransitioning = false;
         }
     }

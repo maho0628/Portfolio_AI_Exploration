@@ -68,7 +68,7 @@ public class BattleManager : MonoBehaviour
 
         if (battleEnded)
         {
-            Debug.Log("❌ すでに終了済み");
+            DebugManager.Log("❌ すでに終了済み");
             return;
         }
 
