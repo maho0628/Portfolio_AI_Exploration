@@ -144,12 +144,7 @@ public abstract class BattleAI : MonoBehaviour
 
         //デバッグログ一旦は残すけど後で削除すること
 
-        //Debug.Log($"HP:{blackboard.CurrentHP} TP:{blackboard.CurrentTP}");
-
-        //foreach (var skill in skills)
-        //{
-        //    Debug.Log($"Skill:{skill.name} Type:{skill.skillType}");
-        //}
+        
     }
 
     public void Initialize()
@@ -159,8 +154,7 @@ public abstract class BattleAI : MonoBehaviour
 
         //デバッグログ一旦は残すけど後で削除すること
 
-        //Debug.LogWarning(status.MaxHP);
-        //Debug.LogWarning(status.TPMax);
+     
 
         //死亡していない＋初期化完了に設定
         isDead = false;
@@ -276,7 +270,6 @@ public abstract class BattleAI : MonoBehaviour
         }
 
         //デバッグログ一旦は残すけど後で削除すること
-        // Debug.Log($"{name} TryDecideSkill");
 
         //// SkillState実行中は再度スキル決定しないためのガード
         // ただし「スキル決定」自体をBattleAIが持つ設計が適切かは要検討
@@ -298,16 +291,11 @@ public abstract class BattleAI : MonoBehaviour
         //ゲージフルかどうか確認
         bool gaugeFull = IsGaugeFull();
 
-        Debug.Log("TryStartUltimate");
-        Debug.Log($"gaugeFull={gaugeFull}");
         if (gaugeFull && TryStartUltimate())
         {
             return true;
         }
-        //デバッグログ一旦は残すけど後で削除すること
-
-        //Debug.Log($"[UB CHECK] TP:{Blackboard.CurrentTP}/{Blackboard.MaxTP} manual:{hasManualInput} full:{gaugeFull}");
-
+    
 
 
         // ---- ここまでUB ----
@@ -315,8 +303,6 @@ public abstract class BattleAI : MonoBehaviour
         // ---- ここから下は通常スキルだけ ----
         SkillSO nextSkill = GetNextNormalSkill();
 
-        Debug.Log(nextSkill);
-        //int safety = 0;
 
 
 
@@ -336,7 +322,6 @@ public abstract class BattleAI : MonoBehaviour
         {
             return false;
         }
-        Debug.Log(skill);
         SetPendingSkill(skill);
         ChangeState(HoldState);
 
@@ -344,7 +329,7 @@ public abstract class BattleAI : MonoBehaviour
     }
     private bool TryStartUltimate()
     {
-        var ultimate =GetUltimateSkill();
+        var ultimate = GetUltimateSkill();
         if (ultimate == null)
         {
             return false;
@@ -391,7 +376,7 @@ public abstract class BattleAI : MonoBehaviour
     {
         if (nextState == null)
         {
-            Debug.LogError("ChangeState called with null");
+            DebugManager.LogError("ChangeState called with null");
             return;
         }
 
@@ -400,7 +385,7 @@ public abstract class BattleAI : MonoBehaviour
             return;
         }
 
-        Debug.Log($"State Change: {currentState.GetType().Name} -> {nextState.GetType().Name}");
+        DebugManager.Log($"State Change: {currentState.GetType().Name} -> {nextState.GetType().Name}");
 
         currentState.OnExit();
         currentState = nextState;
@@ -470,22 +455,9 @@ public abstract class BattleAI : MonoBehaviour
             AudioManager.Instance.PlaySEById(SEName.Attack);
         }
 
-        //各キャラの攻撃力を参照する
-        int attack = status.PhysicalAttack;
 
-        //与えるターゲットの防御力を参照する
-        int defense = Blackboard.Target.status.PhysicalDefense;
-
-        //実際に与えることのできる力の最大：攻撃力＊スキルの倍率＊１００（マジックナンバーだし、何で？）
-
-        int scaled = attack * skill.MultiPlier / 100;
-
-        //Refactor: ここシリアライズフィールドで書いてるけど将来データ駆動
-
-        //実際に与えることのできる力の最大ー防御力で実際に与えれるダメージを計算し、最小値より低かったらMinimumDamageを与える
-        int damage = Mathf.Max(MinimumDamage, scaled - defense);
-
-        Debug.Log($"{name} deals {damage} damage");
+        //ダメージ計算関数を呼ぶ
+        int damage = CalculateDamage(skill);
 
         //ターゲットへのダメージ量が決定したのでブラックボードに渡す
         Blackboard.Target.TakeDamage(damage);
@@ -496,6 +468,19 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     /// <param name="amount"></param>
 
+
+    private int CalculateDamage(SkillSO skill)
+    {
+        int attack = status.PhysicalAttack;
+        int defense = Blackboard.Target.status.PhysicalDefense;
+
+        float scaled = attack * skill.Multiplier;
+
+        return Mathf.Max(
+            MinimumDamage,
+            Mathf.RoundToInt(scaled - defense)
+        );
+    }
     internal virtual void TakeDamage(int amount)
     {
         blackboard.TakeDamage(amount);
@@ -570,9 +555,9 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     protected virtual void OnDeath()
     {
-        Debug.Log($"{name} is dead.");
-        Debug.Log($"IsDead{blackboard.IsDead}");
-        Debug.Log($"OnDeath called by {this}");
+        DebugManager.Log($"{name} is dead.");
+        DebugManager.Log($"IsDead{blackboard.IsDead}");
+        DebugManager.Log($"OnDeath called by {this}");
 
     }
 
@@ -640,9 +625,7 @@ public abstract class BattleAI : MonoBehaviour
             return IdleState;
         }
 
-        //デバッグログ一旦は残すけど後で削除すること
-        //Debug.Log($"[AI] Action:{currentAction?.actionType}");
-
+        
         //該当のステートを返す
         return currentAction.actionType switch
         {
@@ -678,19 +661,15 @@ public abstract class BattleAI : MonoBehaviour
 
     public virtual void ReceivePlayerCommand(PlayerCommand command)
     {
-        Debug.Log($"{name}'s ReceivePlayerCommand called");
-        Debug.Log(currentState.GetType().Name);
+        DebugManager.Log($"{name}'s ReceivePlayerCommand called");
+        DebugManager.Log(currentState.GetType().Name);
         switch (command)
         {
             case PlayerCommand.Skill:
 
-                //ここから余計に加算してる？
-                //BattleResultData.interventionCount++;
+                BattleResultData.interventionCount++;
 
-                //if (canIntervention)
-                //{
-                //    BattleResultData.successCount++;
-                //}
+
                 //ここまで
 
                 // 成功時のみ予約
@@ -701,7 +680,7 @@ public abstract class BattleAI : MonoBehaviour
                     //手動介入要求を許可する
                     RequestManualSkill();
 
-                    Debug.Log("manualSkillRequested = true");
+                    DebugManager.Log("manualSkillRequested = true");
                 }
                 break;
         }
