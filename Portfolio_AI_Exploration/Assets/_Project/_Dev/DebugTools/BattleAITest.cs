@@ -10,7 +10,6 @@ public class BattleAITest : BattleAI
         base.Awake();
 
         DebugManager.Log("BattleAI Test Awake");
-        DebugManager.Log($"[AI] Initial State = {currentState?.GetType().Name}");
     }
 
     private void Start()
@@ -27,6 +26,29 @@ public class BattleAITest : BattleAI
         ReceivePlayerCommand(PlayerCommand.Skill);
     }
 
+    internal override void ExecuteSkill()
+    {
+        base.ExecuteSkill();
+
+        int tpGain =
+            SkillState.GetCurrentSkill()
+            .TPGainOnHit;
+
+        ShowTPGain(tpGain);
+    }
+
+    private void ShowTPGain(int amount)
+    {
+
+        if (tpTextPool == null)
+            return;
+
+        var text = tpTextPool.Get();
+
+        text.transform.position = transform.position;
+
+        text.Play(amount);
+    }
     protected override void Update()
     {
         base.Update();
@@ -38,6 +60,20 @@ public class BattleAITest : BattleAI
             ActionMapType.Battle,
             InputActionType.Ultimate
         );
+    }
+
+    protected override void TakeDamage(int amount)
+    {
+        base.TakeDamage(amount);
+        AudioManager.Instance.PlaySEById(SEName.PlayerHit);
+
+    }
+
+    protected override void OnDeath()
+    {
+        base.OnDeath();
+        AudioManager.Instance.PlaySEById(SEName.PlayerDeath);
+
     }
 
 }
