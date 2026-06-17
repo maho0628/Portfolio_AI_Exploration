@@ -66,11 +66,6 @@ public abstract class BattleAI : MonoBehaviour
     private HoldState holdState;
 
     /// <summary>
-    /// AttackStateインスタンス
-    /// </summary>
-    private AttackState attackState;
-
-    /// <summary>
     /// SkillStateインスタンス
     /// </summary>
     private SkillState skillState;
@@ -130,10 +125,7 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     internal HoldState HoldState => holdState;
 
-    /// <summary>
-    /// AttackState インスタンスを取得する
-    /// </summary>
-    internal AttackState AttackState => attackState;
+ 
 
     /// <summary>
     /// SkillState インスタンスを取得する
@@ -156,7 +148,6 @@ public abstract class BattleAI : MonoBehaviour
         // Stateは一度だけ生成
         idleState = new IdleState(this);
         holdState = new HoldState(this);
-        attackState = new AttackState(this);
         skillState = new SkillState(this);
 
         //現在のステートをIdleに決定
@@ -679,7 +670,6 @@ public abstract class BattleAI : MonoBehaviour
         //該当のステートを返す
         return currentAction.actionType switch
         {
-            ActionType.Attack => AttackState,
             ActionType.Hold => HoldState,
             ActionType.Wait => IdleState,
             // Waitは何もしない＝Idle

@@ -9,7 +9,6 @@ public class BattleAction
 
 public enum ActionType
 {
-    Attack,
     Hold,
     Wait
 }
