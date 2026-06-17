@@ -687,7 +687,6 @@ public abstract class BattleAI : MonoBehaviour
         return new BattleAction
         {
             actionType = ActionType.Hold,
-            duration = 10.0f
         };
     }
 

@@ -4,7 +4,6 @@ using System;
 public class BattleAction
 {
     public ActionType actionType;
-    public float duration;
 }
 
 public enum ActionType
