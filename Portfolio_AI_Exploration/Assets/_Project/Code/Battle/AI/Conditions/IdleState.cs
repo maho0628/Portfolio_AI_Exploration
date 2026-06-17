@@ -2,7 +2,8 @@ using UnityEngine;
 
 /// <summary>
 /// 待機状態を表すステート。
-/// スキル発動を優先して判定し、実行できない場合は通常行動を開始する。
+/// 次に実行可能なスキルを優先的に判定し、
+/// 条件を満たさない場合はHoldStateへ遷移する。
 /// </summary>
 public class IdleState : BattleStateBase
 {
@@ -13,9 +14,9 @@ public class IdleState : BattleStateBase
     internal IdleState(BattleAI owner) : base(owner) { }
 
     /// <summary>
-    /// スキル発動を優先して判定する。
-    /// スキルを実行できない場合は、デフォルト行動を設定して通常行動を開始する。
-    /// </summary>
+    /// 行動開始前の待機フェーズ。
+    /// スキル実行条件を評価し、可能であればスキルを開始する。
+    /// 実行できない場合はHoldStateへ遷移する。
     internal override void Tick()
     {
         // キャラクターが死亡している場合は処理しない
@@ -24,24 +25,16 @@ public class IdleState : BattleStateBase
             return;
         }
 
-        // スキル発動を試行する
+        // スキル実行を試みる（成功した場合はそのまま遷移先で処理が進む）
         bool skillStarted = owner.TryDecideSkill();
 
-        // スキルが開始された場合は処理を終了する
         if (skillStarted)
         {
             return;
         }
 
-        // 行動が設定されていない場合は通常行動を開始する
-        if (!owner.HasCurrentAction())
-        {
-            // HoldState 用の行動を設定する
-            owner.SetCurrentAction(owner.GetDefaultAction());
-
-            // 対応するステートへ遷移する
-            owner.ChangeState(owner.GetStateForCurrentAction());
-        }
+        // スキルが開始されなかった場合は通常待機へ
+        owner.ChangeState(owner.HoldState);
 
     }
 }

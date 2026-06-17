@@ -125,23 +125,10 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     internal HoldState HoldState => holdState;
 
- 
-
     /// <summary>
     /// SkillState インスタンスを取得する
     /// </summary>
     internal SkillState SkillState => skillState;
-
-    /// <summary>
-    /// 現在選択されている行動情報
-    /// </summary>
-    private BattleAction currentAction;
-
-    /// <summary>
-    /// 現在の行動情報を取得する。
-    /// 未設定の場合は null。
-    /// </summary>
-    internal BattleAction CurrentAction => currentAction;
 
     protected virtual void Awake()
     {
@@ -312,8 +299,6 @@ public abstract class BattleAI : MonoBehaviour
             return true;
         }
 
-
-
         SkillSO nextSkill = GetNextNormalSkill();
 
         if (nextSkill == null)
@@ -437,8 +422,6 @@ public abstract class BattleAI : MonoBehaviour
     {
         isPlayingUltimate = false;
     }
-
-    // ===== 以下は State から呼ばれる「能力」 =====
 
     /// <summary>
     /// 必殺技ゲージ（TP）が最大値に達しているかを返す。
@@ -599,8 +582,6 @@ public abstract class BattleAI : MonoBehaviour
 
     }
 
-
-
     /// <summary>
     /// AIの更新処理を開始する。
     /// </summary>
@@ -619,75 +600,6 @@ public abstract class BattleAI : MonoBehaviour
             SkillState.GetCurrentSkill()
             .TPGainOnHit
         );
-    }
-
-    /// <summary>
-    /// 行動情報が設定されているかを返す
-    /// </summary>
-    /// <returns>
-    /// true: 行動情報が設定されている
-    /// false: 行動情報が設定されていない
-    /// </returns>
-    internal bool HasCurrentAction()
-    {
-        return currentAction != null;
-    }
-
-    /// <summary>
-    /// 現在の行動情報を設定する
-    /// </summary>
-    /// <param name="action">設定する行動情報</param>
-    internal void SetCurrentAction(BattleAction action)
-    {
-        currentAction = action;
-    }
-
-    /// <summary>
-    /// 現在の行動情報をクリアする
-    /// </summary>
-    internal void ClearCurrentAction()
-    {
-        currentAction = null;
-    }
-
-
-    /// <summary>
-    /// 現在の行動情報に対応するステートを取得する
-    /// </summary>
-    /// <returns>
-    /// 現在の行動情報に対応するステート。
-    /// 行動情報が未設定の場合は IdleState。
-    /// </returns>
-    internal BattleStateBase GetStateForCurrentAction()
-    {
-        //現在のアクションが何もなかったらIdle状態にして返す
-        if (currentAction == null)
-        {
-            return IdleState;
-        }
-
-
-        //該当のステートを返す
-        return currentAction.actionType switch
-        {
-            ActionType.Hold => HoldState,
-            ActionType.Wait => IdleState,
-            // Waitは何もしない＝Idle
-            _ => IdleState
-        };
-    }
-
-
-    /// <summary>
-    /// 初期状態で使用する行動情報を生成する
-    /// </summary>
-    /// <returns>初期状態で使用する行動情報。</returns>
-    internal BattleAction GetDefaultAction()
-    {
-        return new BattleAction
-        {
-            actionType = ActionType.Hold,
-        };
     }
 
     /// <summary>
