@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Ultimate
   m_EditorClassIdentifier: 
   skillCategory: 3
-  multiplier: 420
+  multiplier: 5.2
   tpGainOnHit: 0
-  castTime: 3
+  castTime: 1
+  minimumDamage: 1

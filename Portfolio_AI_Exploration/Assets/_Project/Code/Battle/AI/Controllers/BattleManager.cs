@@ -18,9 +18,9 @@ public class BattleManager : MonoBehaviour
         battleEnded = false;
         hpUI.Init(player, enemy);
         BattleResultData.Reset();
-        player.SetTarget(enemy);
-        enemy.SetTarget(player);
-        playerUBGauge.Init(player); 
+        player.Blackboard.SetTarget(enemy);
+        enemy.Blackboard.SetTarget(player);
+        playerUBGauge.Init(player);
     }
 
     void Update()
@@ -32,7 +32,7 @@ public class BattleManager : MonoBehaviour
             CheckBattleEnd();
         }
 
-      
+
     }
 
     public void StartBattle()
@@ -51,7 +51,7 @@ public class BattleManager : MonoBehaviour
         }
         if (enemy.Blackboard.IsDead)
         {
-   
+
 
             EndBattle(ResultType.Victory);
         }

@@ -1,46 +1,62 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// 戦闘中に共有するキャラクターの状態を管理する。
+/// HP、TP（必殺技ゲージ）、ターゲット情報を保持し、State間で共有する。
+/// </summary>
 public class BattleBlackboard
 {
     /// <summary>
-    ///     ここら辺は全部ブラックボード
+    /// 現在の攻撃対象。
     /// </summary>
-    public BattleAI Target { get; private set; }
+    internal BattleAI Target { get; private set; }
 
-    public int CurrentHP { get; private set; }
-    public int CurrentTP { get; private set; }
-    public int MaxHP { get; }
-    public int MaxTP { get; }
+    /// <summary>
+    /// 戦闘中に変動する現在HP。
+    /// </summary>
+    internal int CurrentHP { get; private set; }
 
-    // =====ここまでブラックボード =====
+    /// <summary>
+    /// 戦闘中に変動する現在のスキル命中時に増加するTP（必殺技ゲージ）。
+    /// </summary>
+    internal int CurrentTP { get; private set; }
 
-    //ステート関連をブラックボードが持つべきじゃない
-    private BattleAI owner;
+    /// <summary>
+    /// 戦闘中の最大HP。
+    /// </summary>
+    internal int MaxHP { get; }
 
+    /// <summary>
+    /// 戦闘中の最大のスキル命中時に増加するTP（必殺技ゲージ）の最大値。
+    /// </summary>
+    internal int MaxTP { get; }
+
+    /// <summary>
+    /// キャラクターが死亡しているか。
+    /// </summary>
+    internal bool IsDead => CurrentHP <= 0;
+
+    /// <summary>
+    /// HPが変更されたことをUIに通知。
+    /// </summary>
+    internal event Action<BattleAI, int, int> OnHPChanged;
+
+    /// <summary>
+    /// TPが変更されたことをUIに通知。
+    /// </summary>
+    internal event Action<int, int> OnTPChanged;
 
 
     /// <summary>
-    /// 計算自体はブラックボードではなくキャラクタークラスが持つべき
-    /// あくまでもこっちの変数はコピーする場所（キャッシュだけ）
+    /// ブラックボードの初期設定。
     /// </summary>
-    public bool IsDead => CurrentHP <= 0;
-
-    /// <summary>
-    /// この二つは多分ギリブラックボード側かな
-    /// </summary>
-    public event Action<BattleAI, int, int> OnHPChanged;
-    public event Action<int, int> OnTPChanged;
-
-    /// <summary>
-    /// 初期設定だからこれはブラックボード側
-    /// </summary>
-    /// <param name="owner"></param>
-    /// <param name="maxHP"></param>
-    /// <param name="maxTP"></param>
-    public BattleBlackboard(BattleAI owner, int maxHP, int maxTP)
+    /// <param name="target">このブラックボードを保持するキャラクター</param>
+    /// <param name="maxHP">戦闘中の最大HP</param>
+    /// <param name="maxTP">戦闘中の最大のスキル命中時に増加するTP（必殺技ゲージ）の最大値</param>
+    internal BattleBlackboard(BattleAI target, int maxHP, int maxTP)
     {
-        this.owner = owner;
+        this.Target = target;
 
         MaxHP = maxHP;
         MaxTP = maxTP;
@@ -50,64 +66,57 @@ public class BattleBlackboard
     }
 
     /// <summary>
-    /// これは参考コードだと「キャラ側が持つべきだけどそしたら今キャラ専用のコントローラー＝キャラ専用のAiコントローラーになってるからリファクタリング必要
+    /// 攻撃対象を更新する。
     /// </summary>
-    /// <param name="target"></param>
-    public void SetTarget(BattleAI target)
+    /// <param name="target">新しい攻撃対象</param>
+    internal void SetTarget(BattleAI target)
     {
         Target = target;
     }
 
     /// <summary>
-    /// ダメージを与える関数はブラックボードが持ったらダメな気がする
-    /// バトルシステム専用のクラスが持つべき
+    /// ダメージを適用し、HPの変更を通知する。
     /// </summary>
-    /// <param name="amount"></param>
-    public void TakeDamage(int amount)
+    /// <param name="amount">受けるダメージ量</param>
+    internal void TakeDamage(int amount)
     {
-        if (IsDead) return;
+        if (IsDead)
+        {
+            return;
+        }
 
         CurrentHP = Mathf.Max(CurrentHP - amount, 0);
         DebugManager.Log($"HP:{CurrentHP}/{MaxHP}");
 
-        OnHPChanged?.Invoke(owner, CurrentHP, MaxHP);
-
+        OnHPChanged?.Invoke(Target, CurrentHP, MaxHP);
 
     }
 
     /// <summary>
-    /// バトルシステム専用のクラスが持つべき（てか回復機能ないから関数自体なくしていい)
+    ///スキル命中時に増加するTP（必殺技ゲージ）を加算し、変更を通知する。
     /// </summary>
-    /// <param name="amount"></param>
-    public void Heal(int amount)
-    {
-        CurrentHP = Mathf.Min(CurrentHP + amount, MaxHP);
-    }
-
-    /// <summary>
-    /// バトルシステム専用のクラスが持つべき(TP上昇するための関数）
-    /// </summary>
-    /// <param name="amount"></param>
-    public void AddTP(int amount)
+    /// <param name="amount">加算するTP（必殺技ゲージ）量</param>
+    internal void AddTP(int amount)
     {
         if (CurrentTP >= MaxTP)
         {
             return;
         }
-        CurrentTP = Mathf.Min(CurrentTP + amount, MaxTP);
-      
 
+        CurrentTP = Mathf.Min(CurrentTP + amount, MaxTP);
 
         //TPの数値変更を通知
         OnTPChanged?.Invoke(CurrentTP, MaxTP);
-        }
 
-
-    /// UB使用時にTPを初期化するための関数（ バトルシステム専用のクラスが持つべき）
-    public void ResetTP()
+    }
+    /// <summary>
+    /// 必殺技使用時にスキル命中時に増加するTP（必殺技ゲージ）量を初期化し、変更を通知する。
+    /// </summary>
+    internal void ResetTP()
     {
         CurrentTP = 0;
         //TPの数値変更を通知
         OnTPChanged?.Invoke(CurrentTP, MaxTP);
     }
+
 }

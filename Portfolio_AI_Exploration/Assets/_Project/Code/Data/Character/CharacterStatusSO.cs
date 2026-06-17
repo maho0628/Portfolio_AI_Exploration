@@ -3,43 +3,47 @@ using UnityEngine;
 
 
 /// <summary>
-/// キャラクターごとのスクリプタブルオブジェクト
+/// キャラクターの基礎ステータスと使用スキルを定義する。
+/// 戦闘中に参照する初期データとして使用する。
 /// </summary>
 [CreateAssetMenu(menuName = "Battle/Character Status")]
 public class CharacterStatusSO : ScriptableObject
 {
     /// <summary>
-    /// 最大HP
+    /// キャラクターの最大HP
     /// </summary>
     [Header("基本ステータス")]
-    [SerializeField,Tooltip("最大HP")] 
+    [SerializeField, Tooltip("キャラクターの最大HP")]
     private int maxHP;
 
     /// <summary>
-    /// 物理攻撃力
+    /// キャラクターの物理攻撃力
     /// </summary>
-    [SerializeField,Tooltip("物理攻撃力")] 
+    [SerializeField, Tooltip("キャラクターの物理攻撃力")]
     private int physicalAttack;
 
     /// <summary>
-    /// 物理防御力
+    /// キャラクターの物理防御力
     /// </summary>
-    [SerializeField,Tooltip("物理防御力")] 
+    [SerializeField, Tooltip("キャラクターの物理防御力")]
     private int physicalDefense;
 
     /// <summary>
-    /// 行動で増加するゲージの最大値
+    /// スキル命中時に増加するTP（必殺技ゲージ）量の最大値
     /// </summary>
-    [SerializeField,Tooltip("行動で増加するゲージの最大値")] 
+    [SerializeField, Tooltip("スキル命中時に増加するTP（必殺技ゲージ）量の最大値")]
     private int tpMax;
 
 
     /// <summary>
-    /// 各キャラが持っているスキルの一覧および順番のリスト
+    /// キャラクターが使用するスキルの一覧と実行順序
     /// </summary>
     [Header("スキル情報")]
-    [SerializeField,Tooltip("各キャラが持っているスキルの一覧および順番のリスト")] 
-    private List<SkillSO> skillLoop= new List<SkillSO>();
+    [SerializeField, Tooltip("キャラクターが使用するスキルの一覧と実行順序")]
+    private List<SkillSO> skillLoop = new List<SkillSO>();
+
+
+    #region 読み取り専用プロパティ
 
     /// <summary>
     /// 最大HP
@@ -57,12 +61,15 @@ public class CharacterStatusSO : ScriptableObject
     internal int PhysicalDefense => physicalDefense;
 
     /// <summary>
-    /// 行動で増加するゲージの最大値
+    ///スキル命中時に増加するTP（必殺技ゲージ）量の最大値
     /// </summary>
     internal int TPMax => tpMax;
 
     /// <summary>
-    /// 各キャラが持っているスキルの一覧および順番のリスト
+    /// キャラクターが使用するスキルの一覧と実行順序
     /// </summary>
-    internal List<SkillSO> SkillLoop => skillLoop;
+    internal IReadOnlyList<SkillSO> SkillLoop => skillLoop;
+
+    #endregion
+
 }

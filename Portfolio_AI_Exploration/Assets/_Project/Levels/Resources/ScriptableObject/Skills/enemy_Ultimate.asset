@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: enemy_Ultimate
   m_EditorClassIdentifier: 
   skillCategory: 3
-  multiplier: 350
+  multiplier: 5.8
   tpGainOnHit: 0
   castTime: 1
+  minimumDamage: 1

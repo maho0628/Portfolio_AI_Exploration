@@ -1,66 +1,69 @@
-using System;
 using UnityEngine;
 
 /// <summary>
-/// 各スキルの詳細情報のスクリプタブルオブジェクト
+/// スキルの設定情報を保持する ScriptableObject。
 /// </summary>
 [CreateAssetMenu(menuName = "Battle/Skill")]
 public class SkillSO : ScriptableObject
 {
     /// <summary>
-    /// スキルのタイプ　
+    /// スキルのカテゴリ。
     /// </summary>
-    [SerializeField, Tooltip("スキルのタイプ")]
+    [SerializeField, Tooltip("スキルのカテゴリ。")]
     private SkillType skillCategory;
 
-
     /// <summary>
-    /// 威力倍率（1.0 = 100%）
+    /// スキルの威力倍率（1.0 = 100%）。
     /// </summary>
-    [SerializeField, Tooltip("威力倍率（1.0 = 100%）")]
+    [SerializeField, Tooltip("スキルの威力倍率（1.0 = 100%）。")]
     [Range(0f, 20f)]
     private float multiplier;
 
-
     /// <summary>
-    /// 行動で増加するゲージ
+    /// スキル命中時に増加するTP（必殺技ゲージ）量。
     /// </summary>
-    [SerializeField, Tooltip("行動で増加するゲージ")]
+    [SerializeField, Tooltip("スキル命中時に増加するTP（必殺技ゲージ）量。")]
     private int tpGainOnHit;
 
-
     /// <summary>
-    /// スキル発動までの待機時間
+    /// スキル発動までの待機時間。
     /// </summary>
-    [SerializeField, Tooltip("スキル発動までの待機時間")]
-
+    [SerializeField, Tooltip("スキル発動までの待機時間。")]
     private float castTime;
 
+    /// <summary>
+    /// スキルの最低保証ダメージ。
+    /// </summary>
+    [SerializeField, Tooltip("スキルの最低保証ダメージ。")]
+    private int minimumDamage = 1;
 
 
-
-
-
-    #region  読み取り専用プロパティ (スキルの内部管理用変数)
+    #region 読み取り専用プロパティ
 
     /// <summary>
-    /// スキルのタイプ
+    /// スキルのカテゴリ。
     /// </summary>
     internal SkillType SkillCategory => skillCategory;
 
-
     /// <summary>
-    /// 威力倍率（1.0 = 100%）
+    /// スキルの威力倍率（1.0 = 100%）。
     /// </summary>
     internal float Multiplier => multiplier;
 
     /// <summary>
-    /// 行動で増加するゲージ
+    /// スキル命中時に増加するTP（必殺技ゲージ）量。
     /// </summary>
     internal int TPGainOnHit => tpGainOnHit;
 
+    /// <summary>
+    /// スキル発動までの待機時間。
+    /// </summary>
+    internal float CastTime => castTime;
 
-    internal float CastTime => castTime;    
+    /// <summary>
+    /// スキルの最低保証ダメージ。
+    /// </summary>
+    internal int MinimumDamage => minimumDamage;
 
     #endregion
 

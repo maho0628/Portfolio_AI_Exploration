@@ -4,11 +4,7 @@ using UnityEngine;
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
 
-public enum PlayerCommand
-{
-    Skill,
-    Wait
-}
+
 
 /// <summary>
 /// 戦闘AIの本体クラス。
@@ -18,19 +14,18 @@ public enum PlayerCommand
 public abstract class BattleAI : MonoBehaviour
 {
     /// <summary>
-    /// 各キャラクターのステータス（どのスキルを持っているかまたそのスキルループの順番もここで決定
+    /// キャラクターのステータス情報。
+    /// スキル構成やスキルループ順、各種能力値を保持する。
     /// </summary>
     [SerializeField]
-    protected CharacterStatusSO status;
-
-
+    private CharacterStatusSO status;
 
     /// <summary>
     /// 被弾エフェクトのスクリプタブルオブジェクト
-    /// シェイクしたりヒットストップしたり
+    /// シェイクやヒットストップなど
     /// </summary>
     [SerializeField]
-    protected DamageEffectSettingsSO damageEffectSettings;
+    private DamageEffectSettingsSO damageEffectSettings;
 
     /// <summary>
     /// 被弾したときのHP減少をオブジェクトプールで表示するための変数
@@ -39,78 +34,66 @@ public abstract class BattleAI : MonoBehaviour
     private DamageTextPool damageTextPool;
 
     /// <summary>
-    /// UBの演出とかを呼び出すために自作クラス型の変数を宣言してる
+    /// 必殺技の演出などを呼び出すためのクラスのインスタンス
     /// </summary>
     [SerializeField]
     private UltimatePresentationController ultimatePresentation;
 
     /// <summary>
-    /// 最低限何ダメージを与えることができるか（そもそもこれさSkillSOが持つべきじゃね？
+    /// 現在どのステートなのか
     /// </summary>
-
-    [SerializeField]
-
-    int MinimumDamage = 1;
+    private BattleStateBase currentState;
 
     /// <summary>
-    /// 現在どのステートなのか（Idle～アタックまで切り替わりまくる場所
+    /// 各キャラクターのブラックボード。
+    /// 現在のHPや スキル命中時に増加するTP（必殺技ゲージ）量、ターゲット情報などを管理する。
     /// </summary>
-    protected BattleStateBase currentState;
+    private BattleBlackboard blackboard;
 
     /// <summary>
-    /// 各キャラクターのブラックボード
-    /// ここで内部的に現在のHPやTPの増減を管理？
-    /// </summary>
-    protected BattleBlackboard blackboard;
-
-    /// <summary>
-    ///ブラックボードを外部で参照できるようにするための変数（上の変数が、private変数でいいやん）
-    /// </summary>
-    public BattleBlackboard Blackboard => blackboard;
-
-    /// <summary>
-    /// 今どのスキルなのかをリストのIndexで判断するため
+    /// スキルループの現在位置
     /// </summary>
     private int skillIndex = 0;
 
-
-    // Stateインスタンス
-    protected IdleState idleState;
-    protected HoldState holdState;
-    protected AttackState attackState;
-    protected SkillState skillState;
-
-    //行動キュー　のちに行動ループを自由に変更できるようにするための下準備　
-    protected BattleAction currentAction;
-
     /// <summary>
-    /// これなもともとは上にも書いてるけどどの順番でステートが変わるかも変更可能にしようとしてて、そのためにインスペクターで確認できるようにの意図で作ったけど今ならいらない節あるんよな（結局できてないし）
-    /// 
+    /// IdleStateインスタンス
     /// </summary>
-    public BattleAction CurrentAction => currentAction;
-
-    // 外部参照用（Stateから使う）また上の変数、privateじゃないやん
-    public IdleState IdleState => idleState;
-    public HoldState HoldState => holdState;
-    public AttackState AttackState => attackState;
-    public SkillState SkillState => skillState;
+    private IdleState idleState;
 
     /// <summary>
-    /// この変数なんだ？多分死亡時にAIが動いてるかどうかを判定かな？（バトルマネージャーで参照しとるし
+    /// HoldStateインスタンス
+    /// </summary>
+    private HoldState holdState;
+
+    /// <summary>
+    /// AttackStateインスタンス
+    /// </summary>
+    private AttackState attackState;
+
+    /// <summary>
+    /// SkillStateインスタンス
+    /// </summary>
+    private SkillState skillState;
+
+    /// <summary>
+    /// AIの更新処理を有効にするかどうか
     /// </summary>
     private bool isActive = false;
 
     /// <summary>
-    /// AIそのものの初期化？
+    /// 初期化が完了しているか
     /// </summary>
-    protected bool isInitialized = false;
+    private bool isInitialized = false;
 
-    // 介入受付中か
-
-    private bool canIntervention;
-    /// skill入力バッファフラグ
+    /// <summary>
+    /// 介入受付中か
     /// </summary>
-    private bool manualSkillRequested;
+    private bool isInterventionWindowOpen;
+
+    /// <summary>
+    /// 手動介入の要求がまだ残っているか
+    /// </summary>
+    private bool hasManualInterventionRequest;
 
     /// <summary>
     /// 必殺技が起動中かどうか
@@ -118,60 +101,73 @@ public abstract class BattleAI : MonoBehaviour
     private bool isPlayingUltimate;
 
     /// <summary>
-    /// AIを持ってるオブジェクトが死んだかどうか
+    /// 死亡処理が実行済みか
     /// </summary>
     private bool isDead;
 
+    /// <summary>
+    /// 現在使用予定のスキルのSO
+    /// </summary>
     private SkillSO pendingSkill;
+
+    /// <summary>
+    ///ブラックボードインスタンスを取得する
+    /// </summary>
+    internal BattleBlackboard Blackboard => blackboard;
+
+    /// <summary>
+    /// 被弾エフェクトのスクリプタブルオブジェクトインスタンスを取得する
+    /// </summary>
+    protected DamageEffectSettingsSO DamageEffectSettings => damageEffectSettings;
+
+    /// <summary>
+    /// IdleState インスタンスを取得する
+    /// </summary>
+    internal IdleState IdleState => idleState;
+
+    /// <summary>
+    /// HoldState インスタンスを取得する
+    /// </summary>
+    internal HoldState HoldState => holdState;
+
+    /// <summary>
+    /// AttackState インスタンスを取得する
+    /// </summary>
+    internal AttackState AttackState => attackState;
+
+    /// <summary>
+    /// SkillState インスタンスを取得する
+    /// </summary>
+    internal SkillState SkillState => skillState;
+
+    /// <summary>
+    /// 現在選択されている行動情報
+    /// </summary>
+    private BattleAction currentAction;
+
+    /// <summary>
+    /// 現在の行動情報を取得する。
+    /// 未設定の場合は null。
+    /// </summary>
+    internal BattleAction CurrentAction => currentAction;
 
     protected virtual void Awake()
     {
-        // Stateは一度だけ生成（使い捨てしない）
+        // Stateは一度だけ生成
         idleState = new IdleState(this);
         holdState = new HoldState(this);
         attackState = new AttackState(this);
         skillState = new SkillState(this);
 
-        //現在のステートをIdleに決定？その後ホールドに遷移するよね？？？変じゃない？
-        //TODO: Idle代入は不要では？
+        //現在のステートをIdleに決定
         currentState = idleState;
 
         //初期設定を呼び出し
         Initialize();
 
-
-
-
-        //デバッグログ一旦は残すけど後で削除すること
-
-        
     }
 
-    public void Initialize()
-    {
-        //ブラックボードの初期化
-        blackboard = new BattleBlackboard(this, status.MaxHP, status.TPMax);
-
-        //デバッグログ一旦は残すけど後で削除すること
-
-     
-
-        //死亡していない＋初期化完了に設定
-        isDead = false;
-        isInitialized = true;
-        // TODO:
-        // 本来Idle開始のはずだがHoldStateへ上書きしている
-        // 意図確認
-
-        //要検討
-        currentAction = new BattleAction
-        {
-            actionType = ActionType.Hold,
-            duration = 0.5f
-        };
-    }
-
-    protected virtual void Update()
+    void Update()
     {
         //初期化されていなければ終了
         if (!isInitialized)
@@ -179,135 +175,156 @@ public abstract class BattleAI : MonoBehaviour
             return;
         }
 
-        //死亡時にAIが動いていないなら終了（ただこの変数いるのか問題は要検討
+        // AIが有効化されていない場合は処理しない
         if (!isActive)
         {
             return;
-
         }
 
-
-        // これさそもそも論isDeadをばとるAI 内部で持つ必要なくね？ブラックボードののIsDead参照でよくないか？
+        //  死亡処理の多重実行防止
         if (!isDead && blackboard.IsDead)
         {
             isDead = true;
-            //死亡死亡後の処理呼び出してるけど内部はただのデバッグログだし、そもそもバトルマネージャー側でも死亡後の処理書いてた気が
             OnDeath();
             return;
         }
 
-        //すでに死亡していたら処理しない（isDeadの責務問題以下略）
+        //すでに死亡していたら処理しない
         if (isDead)
         {
             return;
         }
 
-        //Tickを進めるだけど処理順番ここか？
+        //Tickを進める
         currentState.Tick();
     }
 
     /// <summary>
-    /// 手動介入要求が行われた時に外部で呼ばれる関数（てか外部ですら今呼ばれてないやん、ほかの関数との関係次第で判断かな
+    /// AIの初期化を行う
     /// </summary>
-    public void RequestManualSkill()
+    private void Initialize()
     {
-        manualSkillRequested = true;
+        //ブラックボードの初期化
+        blackboard = new BattleBlackboard(this, status.MaxHP, status.TPMax);
+
+        //死亡していない、初期化完了に設定
+        isDead = false;
+        isInitialized = true;
+
     }
 
-    public void SetPendingSkill(SkillSO skill)
+    /// <summary>
+    /// 手動介入要求が行われた時に呼ばれる
+    /// </summary>
+    private void RequestManualSkill()
+    {
+        hasManualInterventionRequest = true;
+    }
+
+    /// <summary>
+    /// 次に実行するスキルを設定する。
+    /// </summary>
+    /// <param name="skill">設定するスキル</param>
+    internal void SetPendingSkill(SkillSO skill)
     {
         pendingSkill = skill;
     }
 
-    public SkillSO GetPendingSkill()
+    /// <summary>
+    /// 現在使用予定のスキルを取得する
+    /// </summary>
+    /// <returns>
+    /// 現在使用予定のスキル。設定されていない場合は null。
+    /// </returns>    
+    internal SkillSO GetPendingSkill()
     {
         return pendingSkill;
     }
 
-    public SkillSO GetUltimateSkill()
+    /// <summary>
+    /// スキルループから必殺技を取得する。
+    /// </summary>
+    /// <returns>
+    /// 必殺技のスキル情報。
+    /// 存在しない場合は null。
+    /// </returns>
+    internal SkillSO GetUltimateSkill()
     {
-
         return status.SkillLoop.FirstOrDefault(
             s => s.SkillCategory == SkillType.Ultimate
         );
     }
 
     /// <summary>
-    /// 手動介入要求を消費したかどうかを判断して真偽値として返す（そもそもこの書き方でいいのかすごい疑問If,elseにするとかそもそもRequestManualSkillこれを使わずに別々で管理してるところとか,引数持たせてないところとか本当にこれでいいのか？
+    /// 手動介入要求が存在する場合にそれを消費し、結果を返す
     /// </summary>
-    /// <returns></returns>
-    public bool ConsumeManualSkillRequest()
+    /// <returns>
+    /// true = 要求を消費できた
+    /// false = 要求が存在しなかった
+    /// </returns>
+    internal bool ConsumeManualSkillRequest()
     {
-        if (!manualSkillRequested)
+        //手動介入の要求がまだ残っていないのであれば
+        if (!hasManualInterventionRequest)
         {
+            //falseを返してその後処理しない
             return false;
         }
 
-        manualSkillRequested = false;
+        //手動介入の要求が残っているので消費
+        hasManualInterventionRequest = false;
+
         return true;
     }
 
     /// <summary>
-    /// 手動介入できるかどうか　これさそもそも手動介入の要求が送られてきて、その条件とスキルのタイミング的に猶予があればOKとみなすようにしないといけないけど実際にスキルのタイミング的に猶予があればの判断してるのが、skillState側かつ介入できるかどうかのフラグ切り替えしかここはしていないから本当にそれでいいのか？
+    /// 手動介入の受付状態を設定する
     /// </summary>
-    /// <param name="value"></param>
-    public void SetInterventionWindow(bool value)
+    /// <param name="isOpen">
+    /// true: 手動介入を受け付ける
+    /// false: 手動介入を受け付けない
+    /// </param>
+    internal void SetInterventionWindow(bool isOpen)
     {
-        canIntervention = value;
+        isInterventionWindowOpen = isOpen;
     }
+
     /// <summary>
-    /// 一番の問題児　これは一旦放置
+    /// 次に実行するスキルを決定し、実行を開始する。
+    /// 必殺技を優先して判定し、条件を満たさない場合は通常スキルを選択する。
     /// </summary>
-    /// <returns></returns>
-    public bool TryDecideSkill()
+    /// <returns>
+    /// true: スキルの開始に成功した
+    /// false: 実行可能なスキルが存在しない
+    /// </returns>
+    internal bool TryDecideSkill()
     {
 
-
-        //UB再生中ならskill決定しない
+        //UB再生中ならスキル決定しない
         if (isPlayingUltimate)
         {
             return false;
         }
 
-        //デバッグログ一旦は残すけど後で削除すること
-
         //// SkillState実行中は再度スキル決定しないためのガード
-        // ただし「スキル決定」自体をBattleAIが持つ設計が適切かは要検討
-
         if (currentState == SkillState)
         {
             return false;
         }
 
         //まずUB条件だけを最優先で確定させる
-        // ---- ここから ----てかなんでIFelseでUBかどうか判定してないんだろう？→関数切り出しでこの違和感が消える可能性大
-        // manual入力取得しているが現在未使用
-        //// 以前はUB発動条件に含める予定だった可能性あり
-        ///// HoldState経由の介入仕様へ移行予定のため保留。
-        //bool hasManualInput =
-        //ConsumeManualSkillRequest();
-        // 現在のUB発動条件はTP満タンのみ
-        // 手動介入成功との関係は要確認
-        //ゲージフルかどうか確認
         bool gaugeFull = IsGaugeFull();
 
+        //ゲージがフルかつそのスキルが必殺技なら
         if (gaugeFull && TryStartUltimate())
         {
             return true;
         }
-    
 
 
-        // ---- ここまでUB ----
 
-        // ---- ここから下は通常スキルだけ ----
         SkillSO nextSkill = GetNextNormalSkill();
 
-
-
-
-
-        //スキルの中身が何もないなら決まってないとみなしてFalseを返す
         if (nextSkill == null)
         {
             return false;
@@ -316,41 +333,70 @@ public abstract class BattleAI : MonoBehaviour
         return StartSkill(nextSkill);
     }
 
+    /// <summary>
+    /// 実行するスキルを設定し、HoldStateへ遷移する。
+    /// </summary>
+    /// <param name="skill">実行するスキル</param>
+    /// <returns>
+    /// true: スキルの開始に成功した
+    /// false: スキルが設定されていない
+    /// </returns>
     private bool StartSkill(SkillSO skill)
     {
         if (skill == null)
         {
             return false;
         }
+
         SetPendingSkill(skill);
+
         ChangeState(HoldState);
 
         return true;
     }
+
+    /// <summary>
+    /// 必殺技の実行を開始する。
+    /// 必殺技演出を再生し、実行するスキルを設定する。
+    /// </summary>
+    /// <returns>
+    /// true: 必殺技の開始に成功した
+    /// false: 実行可能な必殺技が存在しない
+    /// </returns>
     private bool TryStartUltimate()
     {
+        //必殺技スキルを取得する
         var ultimate = GetUltimateSkill();
+
         if (ultimate == null)
         {
             return false;
         }
 
+        //必殺技の起動中と判定する
         isPlayingUltimate = true;
 
+        //必殺技の演出をスタートする
         ultimatePresentation.Play().Forget();
 
+        //必殺技開始をするかどうかを判定
         return StartSkill(ultimate);
 
     }
-    /// <summary>
-    /// 通常スキル
 
+    /// <summary>
+    /// スキルループから次に実行する通常スキルを取得する。
+    /// 必殺技は対象外とする。
     /// </summary>
-    /// <returns></returns>
+    /// <returns>
+    /// 次に実行する通常スキル。
+    /// 取得できない場合は null。
+    /// </returns>
     private SkillSO GetNextNormalSkill()
     {
         SkillSO nextSkill = null;
         int safety = 0;
+
 
         while (safety < status.SkillLoop.Count)
         {
@@ -358,6 +404,7 @@ public abstract class BattleAI : MonoBehaviour
             skillIndex = (skillIndex + 1) % status.SkillLoop.Count;
             safety++;
 
+            //必殺技では無かったらスキルデータを返す
             if (nextSkill.SkillCategory != SkillType.Ultimate)
             {
                 return nextSkill;
@@ -366,13 +413,13 @@ public abstract class BattleAI : MonoBehaviour
 
         return null;
     }
+
     /// <summary>
-    /// ここは内容込みで合ってそう。ただChangeStateを呼ぶタイミングは要検討
     /// Stateを切り替える唯一の窓口。
     /// State自身は直接他Stateを操作せず、
     /// 必ず owner を通じて遷移を要求する。
     /// </summary>
-    public virtual void ChangeState(BattleStateBase nextState)
+    internal void ChangeState(BattleStateBase nextState)
     {
         if (nextState == null)
         {
@@ -393,9 +440,9 @@ public abstract class BattleAI : MonoBehaviour
     }
 
     /// <summary>
-    /// 必殺技を2度連続で打てなくなるための関数でもこれをAiがそもそも持つべきじゃない気がする
+    /// 必殺技の実行ロックを解除する。
     /// </summary>
-    public void ResetUltimateLock()
+    internal void ResetUltimateLock()
     {
         isPlayingUltimate = false;
     }
@@ -403,29 +450,23 @@ public abstract class BattleAI : MonoBehaviour
     // ===== 以下は State から呼ばれる「能力」 =====
 
     /// <summary>
-    /// TPのゲージがマックスかどうかを判定ギリAIが管理するべきかな
-    /// とはいえ内部の計算処理はブラックボードかキャラがもってそのフラグをこっちで参照する形がいい
+    /// 必殺技ゲージ（TP）が最大値に達しているかを返す。
     /// </summary>
-    /// <returns></returns>
-    public virtual bool IsGaugeFull()
+    /// <returns>
+    /// true: TPが最大値以上
+    /// false: TPが最大値未満
+    /// </returns>
+    internal bool IsGaugeFull()
     {
         return blackboard.CurrentTP >= status.TPMax;
     }
 
-    /// <summary>
-    /// 各AIのターゲットを設定するAI側にあるべきか？てかそもそもこの関数をブラックボードが持つ必要あるのか？
-    /// キャラのコントローラーが持つべき
-    /// </summary>
-    /// <param name="target"></param>
-    public void SetTarget(BattleAI target)
-    {
-        blackboard.SetTarget(target);
-    }
 
     /// <summary>
-    /// ダメージを与えるための関数これはバトルシステムクラスが持つべき（AIはだめ）
+    /// 対象にダメージを適用する。
+    /// 対象の生存確認、攻撃SEの再生、ダメージ計算を行う。
     /// </summary>
-    /// <param name="skill"></param>
+    /// <param name="skill">ダメージ計算に使用するスキル情報</param>
     internal void DealDamage(SkillSO skill)
     {
         //ブラックボードにターゲットが設定されていなければ処理しない
@@ -440,9 +481,6 @@ public abstract class BattleAI : MonoBehaviour
             return;
         }
 
-        //そもそもここから下のSE流す場所本当にここか？
-
-
         //必殺技なら
         if (skill.SkillCategory == SkillType.Ultimate)
         {
@@ -451,10 +489,9 @@ public abstract class BattleAI : MonoBehaviour
         }
         else
         {
-            //通常Skill時の攻撃SEを流す
+            //必殺技以外のスキルの攻撃SEを流す
             AudioManager.Instance.PlaySEById(SEName.Attack);
         }
-
 
         //ダメージ計算関数を呼ぶ
         int damage = CalculateDamage(skill);
@@ -464,38 +501,49 @@ public abstract class BattleAI : MonoBehaviour
     }
 
     /// <summary>
-    /// ダメージを与える（ここはブラックボード関連が変わるからそれに伴って修正
+    /// スキルダメージを計算する。
+    /// 攻撃力にスキル倍率を適用し、対象の防御力を差し引く。
+    /// 計算結果が最低保証ダメージを下回る場合は、最低保証ダメージを返す。
     /// </summary>
-    /// <param name="amount"></param>
-
-
+    /// <param name="skill">ダメージ計算に使用するスキル情報</param>
     private int CalculateDamage(SkillSO skill)
     {
+
         int attack = status.PhysicalAttack;
         int defense = Blackboard.Target.status.PhysicalDefense;
 
+        //// スキル倍率を適用した、理論上の攻撃力を計算
         float scaled = attack * skill.Multiplier;
 
+        // 防御力を差し引いたダメージを整数に丸める。
+        // 計算結果がスキルの最低保証ダメージを下回る場合は、最低保証ダメージを返す。
         return Mathf.Max(
-            MinimumDamage,
+          skill.MinimumDamage,
             Mathf.RoundToInt(scaled - defense)
         );
     }
-    internal virtual void TakeDamage(int amount)
+
+    /// <summary>
+    /// ダメージを受け、HPを減少させる。
+    /// 被弾演出とダメージ表示も実行する。
+    /// </summary>
+    /// <param name="amount">受けるダメージ量</param>
+    protected virtual void TakeDamage(int amount)
     {
+        //ブラックボードにダメージの値を渡す
         blackboard.TakeDamage(amount);
 
-        //ここからは本来な演出系のクラスがもってそこからの関数を参照込みで呼ぶべき
+        //ダメージのエフェクトを出す
         PlayDamageText(amount);
+
+        //ダメージが与えられた時の演出を行う
         PlayDamageReaction();
-        //ここまで
     }
 
     /// <summary>
-    /// AIがもつべきではない（けどアニメーションのマネージャーから関数は呼んでるのか、うーん
-    /// ダメージをエフェクトとして出す関数
+    /// ダメージ数値を表示する。
     /// </summary>
-    /// <param name="damage"></param>
+    /// <param name="damage">表示するダメージ量</param>
 
     private void PlayDamageText(int damage)
     {
@@ -507,20 +555,19 @@ public abstract class BattleAI : MonoBehaviour
     }
 
     /// <summary>
-    /// AIがもつべきではない
-    /// ヒットストップ関数呼びだしたり、画面シェイクしたりする関数
+    /// ヒットストップや画面シェイクをする関数
     /// </summary>
-    internal virtual void PlayDamageReaction()
+    protected virtual void PlayDamageReaction()
     {
         //画面シェイクする
         transform.DOShakePosition(
-            damageEffectSettings.shakeDuration,
+            damageEffectSettings.ShakeDuration,
             new Vector3(
-                damageEffectSettings.shakeStrength,
+                damageEffectSettings.ShakeStrength,
                 0f,
                 0f
             ),
-            damageEffectSettings.shakeVibrato
+            damageEffectSettings.ShakeVibrato
         );
 
         //ヒットストップ関数を呼ぶ
@@ -529,19 +576,18 @@ public abstract class BattleAI : MonoBehaviour
 
 
     /// <summary>
-    /// ヒットストップをするための関数
-    /// AIがもつべきではない
+    /// ヒットストップを再生する。
+    /// 指定時間だけ Time.timeScale を変更し、その後元に戻す。
     /// </summary>
-    /// <returns></returns>
     private async UniTaskVoid PlayHitStop()
     {
         //タイムスケールをヒットストップ用の時間に設定する
-        Time.timeScale = damageEffectSettings.hitStopScale;
+        Time.timeScale = damageEffectSettings.HitStopScale;
 
         //タイムスケールを無視した状態でヒットストップ用の待ち時間分待つ
         await UniTask.Delay(
             System.TimeSpan.FromSeconds(
-                damageEffectSettings.hitStopDuration
+                damageEffectSettings.HitStopDuration
             ),
             ignoreTimeScale: true
         );
@@ -551,7 +597,8 @@ public abstract class BattleAI : MonoBehaviour
     }
 
     /// <summary>
-    /// 派生クラスでSE（音源違いをキャラ事に鳴らすので現在必要だが、要検討箇所でもある
+    /// 死亡時の演出を行うための関数
+    /// 派生クラスでキャラクターごとにSEを鳴らしている
     /// </summary>
     protected virtual void OnDeath()
     {
@@ -564,8 +611,7 @@ public abstract class BattleAI : MonoBehaviour
 
 
     /// <summary>
-    /// 現在はアクティベートAIをバトルマネージャーから呼んでいるが要検討
-    /// AI稼働開始するよう関数（でも停止してなさそう？
+    /// AIの更新処理を開始する。
     /// </summary>
     public void ActivateAI()
     {
@@ -573,11 +619,11 @@ public abstract class BattleAI : MonoBehaviour
     }
 
     /// <summary>
-    /// スキル実行（Virtual消してもいいかもな）この関数を呼ぶ場所は要検討
+    /// 現在のスキルを実行し、必要な後処理を行う。
     /// </summary>
-    public virtual void ExecuteSkill()
+    internal virtual void ExecuteSkill()
     {
-        //TPを各skillごとの手に入れれるTP分加算（うーん個々の書き方はスキルステートとともに要検討かな
+        // スキル命中時に増加するTP（必殺技ゲージ）を加算する
         blackboard.AddTP(
             SkillState.GetCurrentSkill()
             .TPGainOnHit
@@ -585,39 +631,43 @@ public abstract class BattleAI : MonoBehaviour
     }
 
     /// <summary>
-    /// スキルループ巡回用の現在のアクションを取得するための関数、今のところはそのままでもいいけど消したほうがよさそうなのは事実本来の役割果たしてないから（けどバグって時間かかるよりかはマシか？）
+    /// 行動情報が設定されているかを返す
     /// </summary>
-    /// <returns></returns>
-    public bool HasCurrentAction()
+    /// <returns>
+    /// true: 行動情報が設定されている
+    /// false: 行動情報が設定されていない
+    /// </returns>
+    internal bool HasCurrentAction()
     {
         return currentAction != null;
     }
 
     /// <summary>
-    /// スキルループ巡回用の現在のアクションを変更
+    /// 現在の行動情報を設定する
     /// </summary>
-    /// <param name="action"></param>
-    public void SetCurrentAction(BattleAction action)
+    /// <param name="action">設定する行動情報</param>
+    internal void SetCurrentAction(BattleAction action)
     {
         currentAction = action;
     }
 
     /// <summary>
-    /// スキルループ巡回用の現在のアクションをなくす
+    /// 現在の行動情報をクリアする
     /// </summary>
-    public void ClearCurrentAction()
+    internal void ClearCurrentAction()
     {
         currentAction = null;
     }
 
 
-
     /// <summary>
-    ///アクションに対応したステートを返す関数
-    ///ではあるけどやっぱりわざわざEnumをステート変換か
+    /// 現在の行動情報に対応するステートを取得する
     /// </summary>
-    /// <returns></returns>
-    public BattleStateBase GetStateForCurrentAction()
+    /// <returns>
+    /// 現在の行動情報に対応するステート。
+    /// 行動情報が未設定の場合は IdleState。
+    /// </returns>
+    internal BattleStateBase GetStateForCurrentAction()
     {
         //現在のアクションが何もなかったらIdle状態にして返す
         if (currentAction == null)
@@ -625,26 +675,24 @@ public abstract class BattleAI : MonoBehaviour
             return IdleState;
         }
 
-        
+
         //該当のステートを返す
         return currentAction.actionType switch
         {
             ActionType.Attack => AttackState,
             ActionType.Hold => HoldState,
             ActionType.Wait => IdleState,
-            // Waitは何もしない＝IdleでOK
+            // Waitは何もしない＝Idle
             _ => IdleState
         };
     }
 
 
     /// <summary>
-    /// 初期アクションにする
-    /// ギリAI側かな
-    /// わざわざニューするのか少なくてもアイドルステートで呼ぶ必要あるか？
+    /// 初期状態で使用する行動情報を生成する
     /// </summary>
-    /// <returns></returns>
-    public virtual BattleAction GetDefaultAction()
+    /// <returns>初期状態で使用する行動情報。</returns>
+    internal BattleAction GetDefaultAction()
     {
         return new BattleAction
         {
@@ -654,12 +702,11 @@ public abstract class BattleAI : MonoBehaviour
     }
 
     /// <summary>
-    /// 問題児２そもそも入力関連はAIなのか？
-    /// インプットマネージャーから入力された信号を受け取って成功したら手動介入できるとみなして要求を呼ぶ関数
+    /// プレイヤー入力を受け取り、手動介入要求を処理する。
     /// </summary>
-    /// <param name="command"></param>
+    /// <param name="command">受信したプレイヤーコマンド</param>
 
-    public virtual void ReceivePlayerCommand(PlayerCommand command)
+    protected virtual void ReceivePlayerCommand(PlayerCommand command)
     {
         DebugManager.Log($"{name}'s ReceivePlayerCommand called");
         DebugManager.Log(currentState.GetType().Name);
@@ -667,20 +714,21 @@ public abstract class BattleAI : MonoBehaviour
         {
             case PlayerCommand.Skill:
 
+                //手動介入に挑戦したのでカウントを増やす
                 BattleResultData.interventionCount++;
 
 
                 //ここまで
 
                 // 成功時のみ予約
-                if (canIntervention)
+                if (isInterventionWindowOpen)
                 {
                     BattleResultData.successCount++;
 
                     //手動介入要求を許可する
                     RequestManualSkill();
 
-                    DebugManager.Log("manualSkillRequested = true");
+                    DebugManager.Log("hasManualInterventionRequest = true");
                 }
                 break;
         }

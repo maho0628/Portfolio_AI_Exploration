@@ -1,37 +1,37 @@
 /// <summary>
 /// 戦闘AIの各状態（Idle / Hold など）の基底クラス。
-/// Unityの仕組みから切り離された「思考ロジック層」。
+/// Unity の仕組みから切り離された思考ロジック層として機能する。
 /// </summary>
 public abstract class BattleStateBase
 {
     /// <summary>
-    /// このStateを所有している戦闘AI本体。
-    /// HP・ゲージ・入力・遷移要求などは必ず owner 経由で行う。
+    /// このステートを所有する BattleAI。
+    /// HP・TP（必殺技ゲージ）・入力・状態遷移は owner を通じて操作する。
     /// </summary>
     protected BattleAI owner;
 
     /// <summary>
-    /// バトルAIを渡す
+    /// BattleStateBase を初期化する。
     /// </summary>
-    /// <param name="owner"></param>
+    /// <param name="owner">このステートを所有する BattleAI。</param>
     protected BattleStateBase(BattleAI owner)
     {
         this.owner = owner;
     }
 
     /// <summary>
-    /// AIの思考を1フレーム分進める。
-    /// 行動実行ではなく「判断・遷移判定」を行う。
+    /// AI の思考を 1 フレーム分進める。
+    /// 状態遷移の判定や行動決定を行う。
     /// </summary>
-    public abstract void Tick();
+    internal abstract void Tick();
 
     /// <summary>
-    /// ステートに入るとき
+    /// ステート開始時に呼ばれる。
     /// </summary>
-    public virtual void OnEnter() { }
+    internal virtual void OnEnter() { }
 
     /// <summary>
-    /// ステートから抜けるとき（てかステートに抜ける時に処理挟んでないからバグった説）
+    /// ステート終了時に呼ばれる。
     /// </summary>
-    public virtual void OnExit() { }
+    internal virtual void OnExit() { }
 }

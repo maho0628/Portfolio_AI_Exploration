@@ -1,63 +1,50 @@
 using DG.Tweening;
 using UnityEngine;
 
-
+/// <summary>
+/// 敵キャラクター用の BattleAI。
+/// </summary>
 public class EnemyBattleAI : BattleAI
 {
-    protected override void Update()
-    {
-        base.Update();
-
-        if (Blackboard.IsDead)
-            return;
-
-
-    }
-
-
-
-    internal override void PlayDamageReaction()
+    /// <summary>
+    /// ヒットストップや画面シェイクをする関数
+    /// エネミー特有の演出になるように調整
+    /// </summary>
+    protected override void PlayDamageReaction()
     {
         base.PlayDamageReaction();
 
-        var enemySettings =
-          damageEffectSettings
-          as EnemyDamageEffectSettingsSO;
+        var enemySettings = DamageEffectSettings as EnemyDamageEffectSettingsSO;
 
-        transform.DOMoveX(
-    transform.position.x
-        - enemySettings.knockbackDistance,
-
-    enemySettings.knockbackDuration
-)
-.SetEase(enemySettings.knockbackEase)
-.SetLoops(
-    enemySettings.knockbackLoops,
-    LoopType.Yoyo
-);
+        
+        transform.DOMoveX(transform.position.x - enemySettings.KnockbackDistance,
+    enemySettings.KnockbackDuration).SetEase(enemySettings.KnockbackEase)
+.SetLoops(enemySettings.KnockbackLoops, LoopType.Yoyo);
     }
 
-    internal override void TakeDamage(int amount)
+    /// <summary>
+    /// ダメージを受け、HPを減少させる。
+    /// 被弾演出とダメージ表示も実行する。
+    /// この派生クラスでは追加でエネミー被弾時のSEを鳴らす
+    /// </summary>
+    /// <param name="amount">受けるダメージ量</param>
+    protected override void TakeDamage(int amount)
     {
         base.TakeDamage(amount);
         AudioManager.Instance.PlaySEById(SEName.EnemyHit);
 
     }
+
+    /// <summary>
+    /// 死亡時の演出を行うための関数
+    /// エネミー死亡時のSEを鳴らす
+    /// </summary>
     protected override void OnDeath()
     {
         base.OnDeath();
-        AudioManager.Instance.PlaySEById(SEName.EnemyDeath);    
+        AudioManager.Instance.PlaySEById(SEName.EnemyDeath);
     }
-    public override void ReceivePlayerCommand(PlayerCommand command)
-    {
-        DebugManager.LogError("Enemy received input!?");
-    }
-    public override BattleAction GetDefaultAction()
-    {
-        return new BattleAction
-        {
-            actionType = ActionType.Attack,
-            duration = 1.5f
-        };
-    }
+
+    
+
 }

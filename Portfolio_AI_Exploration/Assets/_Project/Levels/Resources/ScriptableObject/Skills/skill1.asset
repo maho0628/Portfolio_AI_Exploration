@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: skill1
   m_EditorClassIdentifier: 
   skillCategory: 1
-  multiplier: 170
+  multiplier: 2.9
   tpGainOnHit: 120
-  castTime: 1.23
+  castTime: 1
+  minimumDamage: 1

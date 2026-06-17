@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: enemy_skill1
   m_EditorClassIdentifier: 
   skillCategory: 1
-  multiplier: 140
+  multiplier: 3.8
   tpGainOnHit: 130
   castTime: 1
+  minimumDamage: 1
