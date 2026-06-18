@@ -1,7 +1,11 @@
 using UnityEngine;
 
-public class TPTextPool : ObjectPool<TPTextController>
-
+/// <summary>
+/// TP表示用テキストのオブジェクトプール。
+/// TPTextController の生成と再利用を管理する。
+/// </summary>
+public class TPTextPool
+    : ObjectPool<TPTextController>
 {
 
 }
