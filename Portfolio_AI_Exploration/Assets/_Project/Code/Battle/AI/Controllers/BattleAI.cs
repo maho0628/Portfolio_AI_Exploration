@@ -1,10 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
-
-
 
 /// <summary>
 /// 戦闘AIの本体クラス。
@@ -13,6 +10,12 @@ using Cysharp.Threading.Tasks;
 /// </summary>
 public abstract class BattleAI : MonoBehaviour
 {
+    // ==================================================
+    // Serialized Fields（Inspector依存）
+    // ==================================================
+
+    #region Serialized Fields
+
     /// <summary>
     /// キャラクターのステータス情報。
     /// スキル構成やスキルループ順、各種能力値を保持する。
@@ -39,21 +42,43 @@ public abstract class BattleAI : MonoBehaviour
     [SerializeField]
     private UltimatePresentationController ultimatePresentation;
 
+    #endregion
+
+
+    // ==================================================
+    // Runtime State
+    // ==================================================
+
+    #region Runtime State
+
+    /// <summary>
+    /// AIの更新処理を有効にするかどうか
+    /// </summary>
+    private bool isActive = false;
+
+    /// <summary>
+    /// 初期化が完了しているか
+    /// </summary>
+    private bool isInitialized = false;
+
+    /// <summary>
+    /// 死亡処理が実行済みか
+    /// </summary>
+    private bool isDead;
+
+    #endregion
+
+
+    // ==================================================
+    // State Machine
+    // ==================================================
+
+    #region State Machine
+
     /// <summary>
     /// 現在どのステートなのか
     /// </summary>
     private BattleStateBase currentState;
-
-    /// <summary>
-    /// 各キャラクターのブラックボード。
-    /// 現在のHPや スキル命中時に増加するTP（必殺技ゲージ）量、ターゲット情報などを管理する。
-    /// </summary>
-    private BattleBlackboard blackboard;
-
-    /// <summary>
-    /// スキルループの現在位置
-    /// </summary>
-    private int skillIndex = 0;
 
     /// <summary>
     /// IdleStateインスタンス
@@ -70,15 +95,48 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     private SkillState skillState;
 
-    /// <summary>
-    /// AIの更新処理を有効にするかどうか
-    /// </summary>
-    private bool isActive = false;
+    #endregion
+
+
+    // ==================================================
+    // Combat Core
+    // ==================================================
+
+    #region Combat Core
 
     /// <summary>
-    /// 初期化が完了しているか
+    /// 各キャラクターのブラックボード。
+    /// 現在のHPや スキル命中時に増加するTP（必殺技ゲージ）量、ターゲット情報などを管理する。
     /// </summary>
-    private bool isInitialized = false;
+    private BattleBlackboard blackboard;
+
+    #endregion
+
+
+    // ==================================================
+    // Skill Flow
+    // ==================================================
+
+    #region Skill Flow
+
+    /// <summary>
+    /// スキルループの現在位置
+    /// </summary>
+    private int skillIndex = 0;
+
+    /// <summary>
+    /// 現在使用予定のスキルのSO
+    /// </summary>
+    private SkillSO pendingSkill;
+
+    #endregion
+
+
+    // ==================================================
+    // Input / Intervention
+    // ==================================================
+
+    #region Input / Intervention
 
     /// <summary>
     /// 介入受付中か
@@ -90,20 +148,28 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     private bool hasManualInterventionRequest;
 
+    #endregion
+
+
+    // ==================================================
+    // Ultimate Management
+    // ==================================================
+
+    #region Ultimate Management
+
     /// <summary>
     /// 必殺技が起動中かどうか
     /// </summary>
     private bool isPlayingUltimate;
 
-    /// <summary>
-    /// 死亡処理が実行済みか
-    /// </summary>
-    private bool isDead;
+    #endregion
 
-    /// <summary>
-    /// 現在使用予定のスキルのSO
-    /// </summary>
-    private SkillSO pendingSkill;
+
+    // ==================================================
+    // Properties - Data
+    // ==================================================
+
+    #region Properties - Data
 
     /// <summary>
     ///ブラックボードインスタンスを取得する
@@ -114,6 +180,15 @@ public abstract class BattleAI : MonoBehaviour
     /// 被弾エフェクトのスクリプタブルオブジェクトインスタンスを取得する
     /// </summary>
     protected DamageEffectSettingsSO DamageEffectSettings => damageEffectSettings;
+
+    #endregion
+
+
+    // ==================================================
+    // Properties - State Machine
+    // ==================================================
+
+    #region Properties - State Machine
 
     /// <summary>
     /// IdleState インスタンスを取得する
@@ -130,19 +205,25 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     internal SkillState SkillState => skillState;
 
-    protected virtual void Awake()
+    #endregion
+
+
+    // ==================================================
+    // Unity Lifecycle (Entry Point)
+    // ==================================================
+
+    #region Unity Lifecycle (Entry Point)
+
+    void Awake()
     {
-        // Stateは一度だけ生成
-        idleState = new IdleState(this);
-        holdState = new HoldState(this);
-        skillState = new SkillState(this);
+        //インスタンス生成を開始
+        Setup();
 
         //現在のステートをIdleに決定
         currentState = idleState;
 
         //初期設定を呼び出し
-        Initialize();
-
+        InitializeRuntime();
     }
 
     void Update()
@@ -177,26 +258,221 @@ public abstract class BattleAI : MonoBehaviour
         currentState.Tick();
     }
 
+    #endregion
+
+
+    // ==================================================
+    // Initialization (Setup)
+    // ==================================================
+
+    #region Initialization (Setup)
+
     /// <summary>
-    /// AIの初期化を行う
+    /// BattleAIの依存オブジェクトを構築する
+    /// State / Blackboard などの初期インスタンス生成を行う
     /// </summary>
-    private void Initialize()
+    private void Setup()
     {
         //ブラックボードの初期化
         blackboard = new BattleBlackboard(this, status.MaxHP, status.TPMax);
 
-        //死亡していない、初期化完了に設定
+        idleState = new IdleState(this);
+        holdState = new HoldState(this);
+        skillState = new SkillState(this);
+    }
+
+    #endregion
+
+
+    // ==================================================
+    //  Initialization (Runtime)
+    // ==================================================
+
+    #region Initialization (Runtime)
+
+    /// <summary>
+    /// BattleAIの実行状態を初期化する
+    /// 初期化完了フラグと死亡状態を設定する
+    /// </summary>
+    private void InitializeRuntime()
+    {
         isDead = false;
         isInitialized = true;
+    }
 
+    #endregion
+
+
+    // ==================================================
+    //   AI Lifecycle (Runtime Control)
+    // ==================================================
+
+    #region AI Lifecycle (Runtime Control)
+
+    /// <summary>
+    /// 死亡時の演出を行うための関数
+    /// 派生クラスでキャラクターごとにSEを鳴らしている
+    /// </summary>
+    protected virtual void OnDeath()
+    {
+        DebugManager.Log($"{name} is dead.");
+        DebugManager.Log($"IsDead{blackboard.IsDead}");
+        DebugManager.Log($"OnDeath called by {this}");
     }
 
     /// <summary>
-    /// 手動介入要求が行われた時に呼ばれる
+    /// AIの更新処理を開始する。
     /// </summary>
-    private void RequestManualSkill()
+    public void ActivateAI()
     {
-        hasManualInterventionRequest = true;
+        isActive = true;
+    }
+
+    #endregion
+
+
+    // ==================================================
+    //  State Management
+    // ==================================================
+
+    #region   State Management
+
+    /// <summary>
+    /// Stateを切り替える唯一の窓口。
+    /// State自身は直接他Stateを操作せず、
+    /// 必ず owner を通じて遷移を要求する。
+    /// </summary>
+    internal void ChangeState(BattleStateBase nextState)
+    {
+        if (nextState == null)
+        {
+            DebugManager.LogError("ChangeState called with null");
+            return;
+        }
+
+        if (currentState == nextState)
+        {
+            return;
+        }
+
+        DebugManager.Log($"State Change: {currentState.GetType().Name} -> {nextState.GetType().Name}");
+
+        currentState.OnExit();
+        currentState = nextState;
+        currentState.OnEnter();
+    }
+
+    #endregion
+
+
+    // ==================================================
+    // Skill Decision（判断）
+    // ==================================================
+
+    #region Skill Decision（判断）
+
+    /// <summary>
+    /// 次に実行するスキルを決定し、実行を開始する。
+    /// 必殺技を優先して判定し、条件を満たさない場合は通常スキルを選択する。
+    /// </summary>
+    /// <returns>
+    /// true: スキルの開始に成功した
+    /// false: 実行可能なスキルが存在しない
+    /// </returns>
+    internal bool TryDecideSkill()
+    {
+        //UB再生中ならスキル決定しない
+        if (isPlayingUltimate)
+        {
+            return false;
+        }
+
+        //// SkillState実行中は再度スキル決定しないためのガード
+        if (currentState == SkillState)
+        {
+            return false;
+        }
+
+        //まずUB条件だけを最優先で確定させる
+        bool gaugeFull = IsGaugeFull();
+
+        //ゲージがフルかつそのスキルが必殺技なら
+        if (gaugeFull && TryStartUltimate())
+        {
+            return true;
+        }
+
+        SkillSO nextSkill = GetNextNormalSkill();
+
+        if (nextSkill == null)
+        {
+            return false;
+        }
+
+        return StartSkill(nextSkill);
+    }
+
+    /// <summary>
+    /// 必殺技の実行を開始する。
+    /// 必殺技演出を再生し、実行するスキルを設定する。
+    /// </summary>
+    /// <returns>
+    /// true: 必殺技の開始に成功した
+    /// false: 実行可能な必殺技が存在しない
+    /// </returns>
+    private bool TryStartUltimate()
+    {
+        //必殺技スキルを取得する
+        var ultimate = GetUltimateSkill();
+
+        if (ultimate == null)
+        {
+            return false;
+        }
+
+        //必殺技の起動中と判定する
+        isPlayingUltimate = true;
+
+        //必殺技の演出をスタートする
+        ultimatePresentation.Play().Forget();
+
+        //必殺技開始をするかどうかを判定
+        return StartSkill(ultimate);
+    }
+
+    /// <summary>
+    /// スキルループから必殺技を取得する。
+    /// </summary>
+    /// <returns>
+    /// 必殺技のスキル情報。
+    /// 存在しない場合は null。
+    /// </returns>
+    internal SkillSO GetUltimateSkill()
+    {
+        return status.SkillLoop.FirstOrDefault(
+           s => s.SkillCategory == SkillType.Ultimate);
+    }
+
+    /// <summary>
+    /// 実行するスキルを設定し、HoldStateへ遷移する。
+    /// </summary>
+    /// <param name="skill">実行するスキル</param>
+    /// <returns>
+    /// true: スキルの開始に成功した
+    /// false: スキルが設定されていない
+    /// </returns>
+    private bool StartSkill(SkillSO skill)
+    {
+        if (skill == null)
+        {
+            return false;
+        }
+
+        SetPendingSkill(skill);
+
+        ChangeState(HoldState);
+
+        return true;
     }
 
     /// <summary>
@@ -207,6 +483,45 @@ public abstract class BattleAI : MonoBehaviour
     {
         pendingSkill = skill;
     }
+
+    /// <summary>
+    /// スキルループから次に実行する通常スキルを取得する。
+    /// 必殺技は対象外とする。
+    /// </summary>
+    /// <returns>
+    /// 次に実行する通常スキル。
+    /// 取得できない場合は null。
+    /// </returns>
+    private SkillSO GetNextNormalSkill()
+    {
+        SkillSO nextSkill = null;
+
+        int safety = 0;
+
+        while (safety < status.SkillLoop.Count)
+        {
+            nextSkill = status.SkillLoop[skillIndex];
+            skillIndex = (skillIndex + 1) % status.SkillLoop.Count;
+            safety++;
+
+            //必殺技では無かったらスキルデータを返す
+            if (nextSkill.SkillCategory != SkillType.Ultimate)
+            {
+                return nextSkill;
+            }
+        }
+
+        return null;
+    }
+
+    #endregion
+
+
+    // ==================================================
+    // Skill Execution (実行）
+    // ==================================================
+
+    #region Skill Execution (実行）
 
     /// <summary>
     /// 現在使用予定のスキルを取得する
@@ -220,17 +535,29 @@ public abstract class BattleAI : MonoBehaviour
     }
 
     /// <summary>
-    /// スキルループから必殺技を取得する。
+    /// 現在のスキルを実行し、必要な後処理を行う。
     /// </summary>
-    /// <returns>
-    /// 必殺技のスキル情報。
-    /// 存在しない場合は null。
-    /// </returns>
-    internal SkillSO GetUltimateSkill()
+    internal virtual void ExecuteSkill()
     {
-        return status.SkillLoop.FirstOrDefault(
-            s => s.SkillCategory == SkillType.Ultimate
-        );
+        // スキル命中時に増加するTP（必殺技ゲージ）を加算する
+        blackboard.AddTP(SkillState.GetCurrentSkill().TPGainOnHit);
+    }
+
+    #endregion
+
+
+    // ==================================================
+    // ManualIntervention
+    // ==================================================
+
+    #region ManualIntervention
+
+    /// <summary>
+    /// 手動介入要求が行われた時に呼ばれる
+    /// </summary>
+    private void RequestManualSkill()
+    {
+        hasManualInterventionRequest = true;
     }
 
     /// <summary>
@@ -268,173 +595,41 @@ public abstract class BattleAI : MonoBehaviour
     }
 
     /// <summary>
-    /// 次に実行するスキルを決定し、実行を開始する。
-    /// 必殺技を優先して判定し、条件を満たさない場合は通常スキルを選択する。
+    /// プレイヤー入力を受け取り、手動介入要求を処理する。
     /// </summary>
-    /// <returns>
-    /// true: スキルの開始に成功した
-    /// false: 実行可能なスキルが存在しない
-    /// </returns>
-    internal bool TryDecideSkill()
+    /// <param name="command">受信したプレイヤーコマンド</param>
+
+    protected virtual void ReceivePlayerCommand(PlayerCommand command)
     {
-
-        //UB再生中ならスキル決定しない
-        if (isPlayingUltimate)
+        switch (command)
         {
-            return false;
+            case PlayerCommand.Skill:
+
+                //手動介入に挑戦したのでカウントを増やす
+                BattleResultData.interventionCount++;
+
+                // 成功時のみ予約
+                if (isInterventionWindowOpen)
+                {
+                    BattleResultData.successCount++;
+
+                    //手動介入要求を許可する
+                    RequestManualSkill();
+
+                    DebugManager.Log("hasManualInterventionRequest = true");
+                }
+                break;
         }
-
-        //// SkillState実行中は再度スキル決定しないためのガード
-        if (currentState == SkillState)
-        {
-            return false;
-        }
-
-        //まずUB条件だけを最優先で確定させる
-        bool gaugeFull = IsGaugeFull();
-
-        //ゲージがフルかつそのスキルが必殺技なら
-        if (gaugeFull && TryStartUltimate())
-        {
-            return true;
-        }
-
-        SkillSO nextSkill = GetNextNormalSkill();
-
-        if (nextSkill == null)
-        {
-            return false;
-        }
-
-        return StartSkill(nextSkill);
     }
 
-    /// <summary>
-    /// 実行するスキルを設定し、HoldStateへ遷移する。
-    /// </summary>
-    /// <param name="skill">実行するスキル</param>
-    /// <returns>
-    /// true: スキルの開始に成功した
-    /// false: スキルが設定されていない
-    /// </returns>
-    private bool StartSkill(SkillSO skill)
-    {
-        if (skill == null)
-        {
-            return false;
-        }
-
-        SetPendingSkill(skill);
-
-        ChangeState(HoldState);
-
-        return true;
-    }
-
-    /// <summary>
-    /// 必殺技の実行を開始する。
-    /// 必殺技演出を再生し、実行するスキルを設定する。
-    /// </summary>
-    /// <returns>
-    /// true: 必殺技の開始に成功した
-    /// false: 実行可能な必殺技が存在しない
-    /// </returns>
-    private bool TryStartUltimate()
-    {
-        //必殺技スキルを取得する
-        var ultimate = GetUltimateSkill();
-
-        if (ultimate == null)
-        {
-            return false;
-        }
-
-        //必殺技の起動中と判定する
-        isPlayingUltimate = true;
-
-        //必殺技の演出をスタートする
-        ultimatePresentation.Play().Forget();
-
-        //必殺技開始をするかどうかを判定
-        return StartSkill(ultimate);
-
-    }
-
-    /// <summary>
-    /// スキルループから次に実行する通常スキルを取得する。
-    /// 必殺技は対象外とする。
-    /// </summary>
-    /// <returns>
-    /// 次に実行する通常スキル。
-    /// 取得できない場合は null。
-    /// </returns>
-    private SkillSO GetNextNormalSkill()
-    {
-        SkillSO nextSkill = null;
-        int safety = 0;
+    #endregion
 
 
-        while (safety < status.SkillLoop.Count)
-        {
-            nextSkill = status.SkillLoop[skillIndex];
-            skillIndex = (skillIndex + 1) % status.SkillLoop.Count;
-            safety++;
+    // ==================================================
+    // Combat（戦闘処理）
+    // ==================================================
 
-            //必殺技では無かったらスキルデータを返す
-            if (nextSkill.SkillCategory != SkillType.Ultimate)
-            {
-                return nextSkill;
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Stateを切り替える唯一の窓口。
-    /// State自身は直接他Stateを操作せず、
-    /// 必ず owner を通じて遷移を要求する。
-    /// </summary>
-    internal void ChangeState(BattleStateBase nextState)
-    {
-        if (nextState == null)
-        {
-            DebugManager.LogError("ChangeState called with null");
-            return;
-        }
-
-        if (currentState == nextState)
-        {
-            return;
-        }
-
-        DebugManager.Log($"State Change: {currentState.GetType().Name} -> {nextState.GetType().Name}");
-
-        currentState.OnExit();
-        currentState = nextState;
-        currentState.OnEnter();
-    }
-
-    /// <summary>
-    /// 必殺技の実行ロックを解除する。
-    /// </summary>
-    internal void ResetUltimateLock()
-    {
-        isPlayingUltimate = false;
-    }
-
-    /// <summary>
-    /// 必殺技ゲージ（TP）が最大値に達しているかを返す。
-    /// </summary>
-    /// <returns>
-    /// true: TPが最大値以上
-    /// false: TPが最大値未満
-    /// </returns>
-    internal bool IsGaugeFull()
-    {
-        return blackboard.CurrentTP >= status.TPMax;
-    }
-
+    #region Combat（戦闘処理）
 
     /// <summary>
     /// 対象にダメージを適用する。
@@ -482,7 +677,6 @@ public abstract class BattleAI : MonoBehaviour
     /// <param name="skill">ダメージ計算に使用するスキル情報</param>
     private int CalculateDamage(SkillSO skill)
     {
-
         int attack = status.PhysicalAttack;
         int defense = Blackboard.Target.status.PhysicalDefense;
 
@@ -491,8 +685,7 @@ public abstract class BattleAI : MonoBehaviour
 
         // 防御力を差し引いたダメージを整数に丸める。
         // 計算結果がスキルの最低保証ダメージを下回る場合は、最低保証ダメージを返す。
-        return Mathf.Max(
-          skill.MinimumDamage,
+        return Mathf.Max(skill.MinimumDamage,
             Mathf.RoundToInt(scaled - defense)
         );
     }
@@ -513,6 +706,44 @@ public abstract class BattleAI : MonoBehaviour
         //ダメージが与えられた時の演出を行う
         PlayDamageReaction();
     }
+
+    #endregion
+
+
+    // ==================================================
+    //   Ultimate Management
+    // ==================================================
+
+    #region Ultimate Management
+
+    /// <summary>
+    /// 必殺技の実行ロックを解除する。
+    /// </summary>
+    internal void ResetUltimateLock()
+    {
+        isPlayingUltimate = false;
+    }
+
+    /// <summary>
+    /// 必殺技ゲージ（TP）が最大値に達しているかを返す。
+    /// </summary>
+    /// <returns>
+    /// true: TPが最大値以上
+    /// false: TPが最大値未満
+    /// </returns>
+    internal bool IsGaugeFull()
+    {
+        return blackboard.CurrentTP >= status.TPMax;
+    }
+
+    #endregion
+
+
+    // ==================================================
+    // Presentation（演出）
+    // ==================================================
+
+    #region Presentation（演出）
 
     /// <summary>
     /// ダメージ数値を表示する。
@@ -538,16 +769,13 @@ public abstract class BattleAI : MonoBehaviour
             damageEffectSettings.ShakeDuration,
             new Vector3(
                 damageEffectSettings.ShakeStrength,
-                0f,
-                0f
-            ),
+                0f, 0f ),
             damageEffectSettings.ShakeVibrato
         );
 
         //ヒットストップ関数を呼ぶ
         PlayHitStop().Forget();
     }
-
 
     /// <summary>
     /// ヒットストップを再生する。
@@ -561,8 +789,7 @@ public abstract class BattleAI : MonoBehaviour
         //タイムスケールを無視した状態でヒットストップ用の待ち時間分待つ
         await UniTask.Delay(
             System.TimeSpan.FromSeconds(
-                damageEffectSettings.HitStopDuration
-            ),
+                damageEffectSettings.HitStopDuration),
             ignoreTimeScale: true
         );
 
@@ -570,71 +797,6 @@ public abstract class BattleAI : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-    /// <summary>
-    /// 死亡時の演出を行うための関数
-    /// 派生クラスでキャラクターごとにSEを鳴らしている
-    /// </summary>
-    protected virtual void OnDeath()
-    {
-        DebugManager.Log($"{name} is dead.");
-        DebugManager.Log($"IsDead{blackboard.IsDead}");
-        DebugManager.Log($"OnDeath called by {this}");
-
-    }
-
-    /// <summary>
-    /// AIの更新処理を開始する。
-    /// </summary>
-    public void ActivateAI()
-    {
-        isActive = true;
-    }
-
-    /// <summary>
-    /// 現在のスキルを実行し、必要な後処理を行う。
-    /// </summary>
-    internal virtual void ExecuteSkill()
-    {
-        // スキル命中時に増加するTP（必殺技ゲージ）を加算する
-        blackboard.AddTP(
-            SkillState.GetCurrentSkill()
-            .TPGainOnHit
-        );
-    }
-
-    /// <summary>
-    /// プレイヤー入力を受け取り、手動介入要求を処理する。
-    /// </summary>
-    /// <param name="command">受信したプレイヤーコマンド</param>
-
-    protected virtual void ReceivePlayerCommand(PlayerCommand command)
-    {
-        DebugManager.Log($"{name}'s ReceivePlayerCommand called");
-        DebugManager.Log(currentState.GetType().Name);
-        switch (command)
-        {
-            case PlayerCommand.Skill:
-
-                //手動介入に挑戦したのでカウントを増やす
-                BattleResultData.interventionCount++;
-
-
-                //ここまで
-
-                // 成功時のみ予約
-                if (isInterventionWindowOpen)
-                {
-                    BattleResultData.successCount++;
-
-                    //手動介入要求を許可する
-                    RequestManualSkill();
-
-                    DebugManager.Log("hasManualInterventionRequest = true");
-                }
-                break;
-        }
-    }
-
-
+    #endregion
 
 }
