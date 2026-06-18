@@ -11,35 +11,35 @@ using Cysharp.Threading.Tasks;
 public abstract class BattleAI : MonoBehaviour
 {
     // ==================================================
-    // Serialized Fields（Inspector依存）
+    // Serialized Fields
     // ==================================================
 
     #region Serialized Fields
 
     /// <summary>
-    /// キャラクターのステータス情報。
+    /// キャラクターのステータスとスキル構成。
     /// スキル構成やスキルループ順、各種能力値を保持する。
     /// </summary>
-    [SerializeField]
+    [SerializeField,Tooltip("キャラクターのステータスとスキル構成")]
     private CharacterStatusSO status;
 
     /// <summary>
     /// 被弾エフェクトのスクリプタブルオブジェクト
     /// シェイクやヒットストップなど
     /// </summary>
-    [SerializeField]
+    [SerializeField,Tooltip("被弾エフェクトのスクリプタブルオブジェクト")]
     private DamageEffectSettingsSO damageEffectSettings;
 
     /// <summary>
     /// 被弾したときのHP減少をオブジェクトプールで表示するための変数
     /// </summary>
-    [SerializeField]
+    [SerializeField,Tooltip("ダメージ数値表示用のオブジェクトプール")]
     private DamageTextPool damageTextPool;
 
     /// <summary>
     /// 必殺技の演出などを呼び出すためのクラスのインスタンス
     /// </summary>
-    [SerializeField]
+    [SerializeField,Tooltip("必殺技演出を制御するコントローラー")]
     private UltimatePresentationController ultimatePresentation;
 
     #endregion
@@ -756,7 +756,7 @@ public abstract class BattleAI : MonoBehaviour
 
         var text = damageTextPool.Get();
         text.transform.position = transform.position;
-        text.Play(damage);
+        text.PlayDamage(damage);
     }
 
     /// <summary>

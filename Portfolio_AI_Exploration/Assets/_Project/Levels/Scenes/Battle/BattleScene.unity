@@ -2018,7 +2018,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gaugeFill: {fileID: 6690831584146202805}
-  settings: {fileID: 11400000, guid: 6a37ba1439e86fe48b72a5573f9c210d, type: 2}
+  gaugeSettingSO: {fileID: 11400000, guid: 6a37ba1439e86fe48b72a5573f9c210d, type: 2}
   glowImage: {fileID: 1547431045}
 --- !u!1 &1323794603
 GameObject:
@@ -2114,10 +2114,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   status: {fileID: 11400000, guid: 17a541f4ef8fd894a8ae6bb85ea76dd4, type: 2}
   damageEffectSettings: {fileID: 11400000, guid: 088eade625feea24ab20be6c26add069, type: 2}
-  MinimumDamage: 1
   damageTextPool: {fileID: 1142629603}
   ultimatePresentation: {fileID: 827631437}
-  inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   tpTextPool: {fileID: 245787504}
 --- !u!95 &1359461908 stripped
 Animator:

@@ -234,6 +234,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f893507f493f46847a8c6458c5a438b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textUI: {fileID: 5958322700542056746}
+  floatingTextUI: {fileID: 5958322700542056746}
   canvasGroup: {fileID: 1631587238468099920}
-  settings: {fileID: 11400000, guid: 8a7eee3a3c5a0eb44ac9a4b4a2672293, type: 2}
+  floatingTextSettings: {fileID: 11400000, guid: 55cb820a4389b8e49baa824a57a5c574, type: 2}

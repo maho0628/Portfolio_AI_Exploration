@@ -3,29 +3,37 @@ using UnityEngine;
 
 /// <summary>
 /// 敵キャラクター用の BattleAI。
+/// 被弾時のノックバック演出やSE再生など、敵固有の処理を追加する。
 /// </summary>
 public class EnemyBattleAI : BattleAI
 {
     /// <summary>
-    /// ヒットストップや画面シェイクをする関数
-    /// エネミー特有の演出になるように調整
+    /// 被弾演出を再生する。
+    /// 基本演出に加えて、敵固有のノックバック演出を行う。
     /// </summary>
     protected override void PlayDamageReaction()
     {
         base.PlayDamageReaction();
 
         var enemySettings = DamageEffectSettings as EnemyDamageEffectSettingsSO;
+        if (enemySettings == null)
+        {
+            DebugManager.LogError( "EnemyBattleAI requires EnemyDamageEffectSettingsSO.");
+            return;
+        }
 
-        
-        transform.DOMoveX(transform.position.x - enemySettings.KnockbackDistance,
-    enemySettings.KnockbackDuration).SetEase(enemySettings.KnockbackEase)
-.SetLoops(enemySettings.KnockbackLoops, LoopType.Yoyo);
+        //ノックバック演出を行う
+        transform
+         .DOMoveX(
+             transform.position.x - enemySettings.KnockbackDistance,
+             enemySettings.KnockbackDuration)
+         .SetEase(enemySettings.KnockbackEase)
+         .SetLoops(enemySettings.KnockbackLoops, LoopType.Yoyo);
     }
 
     /// <summary>
-    /// ダメージを受け、HPを減少させる。
-    /// 被弾演出とダメージ表示も実行する。
-    /// この派生クラスでは追加でエネミー被弾時のSEを鳴らす
+    /// 被弾時の処理を行う。
+    /// 基本処理に加えて、敵専用の被弾SEを再生する。
     /// </summary>
     /// <param name="amount">受けるダメージ量</param>
     protected override void TakeDamage(int amount)
@@ -36,15 +44,13 @@ public class EnemyBattleAI : BattleAI
     }
 
     /// <summary>
-    /// 死亡時の演出を行うための関数
-    /// エネミー死亡時のSEを鳴らす
+    /// 死亡時の処理を行う。
+    /// 基本処理に加えて、敵専用の死亡SEを再生する。
     /// </summary>
     protected override void OnDeath()
     {
         base.OnDeath();
         AudioManager.Instance.PlaySEById(SEName.EnemyDeath);
     }
-
-    
 
 }

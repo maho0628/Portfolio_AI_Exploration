@@ -38,7 +38,7 @@ public class SkillSO : ScriptableObject
     private int minimumDamage = 1;
 
 
-    #region 読み取り専用プロパティ
+    #region Read Only Properties
 
     /// <summary>
     /// スキルのカテゴリ。

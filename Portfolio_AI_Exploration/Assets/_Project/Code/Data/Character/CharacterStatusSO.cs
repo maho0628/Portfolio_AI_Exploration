@@ -43,7 +43,11 @@ public class CharacterStatusSO : ScriptableObject
     private List<SkillSO> skillLoop = new List<SkillSO>();
 
 
-    #region 読み取り専用プロパティ
+    // ==================================================
+    //Read Only Properties
+    // ==================================================
+
+    #region Read Only Properties
 
     /// <summary>
     /// 最大HP

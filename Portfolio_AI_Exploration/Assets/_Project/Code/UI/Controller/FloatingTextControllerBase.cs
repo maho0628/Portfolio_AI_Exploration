@@ -2,31 +2,124 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// 浮遊テキスト演出の共通処理を提供する基底クラス。
+/// テキスト表示、アニメーション再生、オブジェクトプールへの返却を管理する。
+/// </summary>
+/// <typeparam name="T">
+/// オブジェクトプールで管理する自身の型。
+/// </typeparam>
 public abstract class FloatingTextControllerBase<T>
-    : MonoBehaviour,
-      IPoolable<T>
-    where T : MonoBehaviour
+    : MonoBehaviour, IPoolable<T> where T : MonoBehaviour
 {
+    // ==================================================
+    // Serialized Fields
+    // ==================================================
+
+    #region Serialized Fields
+
+    /// <summary>
+    /// 表示するテキストUI。
+    /// </summary>
     [Header("UI")]
-    [SerializeField]
-    protected TextMeshProUGUI textUI;
+    [SerializeField, Tooltip("表示する浮遊テキストUI")]
+    private TextMeshProUGUI floatingTextUI;
 
-    [SerializeField]
-    protected CanvasGroup canvasGroup;
+    /// <summary>
+    /// フェード演出に使用するCanvasGroup。
+    /// </summary>
+    [SerializeField, Tooltip("浮遊テキストの透明度を制御するCanvasGroup")]
+    private CanvasGroup canvasGroup;
 
+    /// <summary>
+    /// 浮遊テキスト演出の設定データ。
+    /// </summary>
     [Header("Settings")]
-    [SerializeField]
-    protected FloatingTextSettingsSO settings;
+    [SerializeField, Tooltip("浮遊テキストの移動量や表示時間などの設定")]
+    private FloatingTextSettingsSO floatingTextSettings;
 
-    protected ObjectPool<T> pool;
+    #endregion
 
-    protected Sequence activeSequence;
+    // ==================================================
+    // Runtime State
+    // ==================================================
 
+    #region Runtime State
+
+    /// <summary>
+    /// 自身を管理するオブジェクトプール。
+    /// </summary>
+    private ObjectPool<T> pool;
+
+    /// <summary>
+    /// 現在再生中のアニメーションシーケンス。
+    /// </summary>
+    private Sequence activeSequence;
+
+    #endregion
+
+
+    // ==================================================
+    // Properties
+    // ==================================================
+
+    #region Properties
+
+    /// <summary>
+    /// 派生クラスから参照するテキストUI。
+    /// </summary>
+    protected TextMeshProUGUI FloatingTextUI => floatingTextUI;
+
+    #endregion
+
+
+    // ==================================================
+    // Pool Lifecycle
+    // ==================================================
+
+    #region Pool Lifecycle
+
+    /// <summary>
+    /// オブジェクト生成時にプールを登録する。
+    /// </summary>
+    /// <param name="pool">
+    /// 自身を管理するオブジェクトプール。
+    /// </param>
     public void OnCreated(ObjectPool<T> pool)
     {
         this.pool = pool;
     }
 
+    /// <summary>
+    /// オブジェクトをプールへ返却する。
+    /// </summary>
+    public void ReturnToPool()
+    {
+        activeSequence?.Kill();
+
+        pool.Return(this as T);
+    }
+
+    /// <summary>
+    /// オブジェクト無効化時に再生中の演出を停止する。
+    /// </summary>
+    void OnDisable()
+    {
+        activeSequence?.Kill();
+    }
+
+    #endregion
+
+
+    // ==================================================
+    // Animation
+    // ==================================================
+
+    #region Animation
+
+    /// <summary>
+    /// 浮遊テキストの移動・フェード演出を再生する。
+    /// </summary>
     protected void PlayAnimation()
     {
         activeSequence?.Kill();
@@ -35,12 +128,12 @@ public abstract class FloatingTextControllerBase<T>
 
         Vector2 offset = new Vector2(
             Random.Range(
-                settings.randomOffsetMin.x,
-                settings.randomOffsetMax.x
+                floatingTextSettings.RandomOffsetMin.x,
+                floatingTextSettings.RandomOffsetMax.x
             ),
             Random.Range(
-                settings.randomOffsetMin.y,
-                settings.randomOffsetMax.y
+                floatingTextSettings.RandomOffsetMin.y,
+                floatingTextSettings.RandomOffsetMax.y
             )
         );
 
@@ -50,30 +143,21 @@ public abstract class FloatingTextControllerBase<T>
 
         activeSequence.Join(
             transform.DOLocalMoveY(
-                offset.y + settings.moveY,
-                settings.duration
+                offset.y + floatingTextSettings.MoveY,
+                floatingTextSettings.Duration
             )
         );
 
         activeSequence.Join(
             canvasGroup.DOFade(
                 0f,
-                settings.duration
+                floatingTextSettings.Duration
             )
         );
 
         activeSequence.OnComplete(ReturnToPool);
     }
 
-    public virtual void ReturnToPool()
-    {
-        activeSequence?.Kill();
+    #endregion
 
-        pool.Return(this as T);
-    }
-
-    protected virtual void OnDisable()
-    {
-        activeSequence?.Kill();
-    }
 }

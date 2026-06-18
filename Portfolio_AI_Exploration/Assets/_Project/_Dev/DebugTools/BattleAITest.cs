@@ -14,8 +14,6 @@ public class BattleAITest : BattleAI
     [SerializeField, Tooltip(" TP（必殺技ゲージ）増加量を表示するテキストプール。")]
     private TPTextPool tpTextPool;
 
-
-
     private void Start()
     {
         //必殺技の入力キーをセット
@@ -60,8 +58,8 @@ public class BattleAITest : BattleAI
     /// <summary>
     /// TP（必殺技ゲージ）の増加量を表示する。
     /// </summary>
-    /// <param name="amount">表示するTP（必殺技ゲージ）増加量</param>
-    private void ShowTPGain(int amount)
+    /// <param name="TP">表示するTP（必殺技ゲージ）増加量</param>
+    private void ShowTPGain(int TP)
     {
 
         if (tpTextPool == null)
@@ -73,7 +71,7 @@ public class BattleAITest : BattleAI
 
         text.transform.position = transform.position;
 
-        text.TPTextPlay(amount);
+        text.PlayTP(TP);
     }
 
 
