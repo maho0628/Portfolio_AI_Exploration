@@ -5,7 +5,7 @@ using UnityEngine;
 /// スキルの発動、ダメージ適用、TP（必殺技ゲージ）の消費を行い、
 /// 実行後に IdleState へ遷移する。
 /// </summary>
-public class SkillState : BattleStateBase
+public class SkillExecutionState : BattleState
 {
     /// <summary>
     /// 現在実行されているスキル。
@@ -13,10 +13,10 @@ public class SkillState : BattleStateBase
     private SkillSO currentSkill;
 
     /// <summary>
-    /// SkillState を初期化する。
+    /// SkillExecutionState を初期化する。
     /// </summary>
     /// <param name="owner">このステートを所有する BattleAI。</param>
-    internal SkillState(BattleAI owner) : base(owner) { }
+    internal SkillExecutionState(BattleAI owner) : base(owner) { }
 
     /// <summary>
     /// 実行するスキルを設定する。
@@ -44,17 +44,17 @@ public class SkillState : BattleStateBase
     {
         if (currentSkill == null)
         {
-            owner.ChangeState(owner.IdleState);
+            owner.SwitchState(owner.IdleState);
             return;
         }
 
-        // UBならTP消費
+        // 必殺技ならTP消費
         if (currentSkill.SkillCategory == SkillType.Ultimate)
         {
-            owner.Blackboard.ResetTP();
+            owner.BB.ResetTP();
         }
 
-        owner.ExecuteSkill();
+        owner.RunSkill();
 
         // ダメージ適用
         owner.DealDamage(currentSkill);
@@ -68,10 +68,10 @@ public class SkillState : BattleStateBase
     internal override void Tick()
     {
 
-        //UBをもう一度打てるようにフラグをリセット
+        //必殺技をもう一度打てるようにフラグをリセット
         owner.ResetUltimateLock();
 
-        owner.ChangeState(owner.IdleState);
+        owner.SwitchState(owner.IdleState);
 
     }
 

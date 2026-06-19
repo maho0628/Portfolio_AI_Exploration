@@ -7,7 +7,7 @@ using UnityEngine.UI;
 /// 必殺技ゲージ（TP）の表示と演出を制御するUIコントローラー。
 /// BattleAI の TP変化を監視し、ゲージの更新や発光演出を行う。
 /// </summary>
-public class UBGaugeUIController : MonoBehaviour
+public class UltimateImpactGaugeUIController : MonoBehaviour
 {
     // ==================================================
     // Serialized Fields
@@ -25,7 +25,7 @@ public class UBGaugeUIController : MonoBehaviour
     /// TPゲージ演出の設定データ。
     /// </summary>
     [SerializeField, Tooltip("TPゲージ演出の設定データ")]
-    private UBGaugeSettingsSO gaugeSettingSO;
+    private UltimateImpactGaugeSettingsSO gaugeSettingSO;
 
     /// <summary>
     /// ゲージ発光演出を表示する Image コンポーネント。
@@ -70,12 +70,12 @@ public class UBGaugeUIController : MonoBehaviour
     {
         owner = ai;
 
-        owner.Blackboard.OnTPChanged += UpdateGauge;
+        owner.BB.OnTPChanged += UpdateGauge;
 
         // 初期表示
         UpdateGauge(
-            owner.Blackboard.CurrentTP,
-            owner.Blackboard.MaxTP
+            owner.BB.CurrentTP,
+            owner.BB.MaxTP
         );
     }
 
@@ -86,7 +86,7 @@ public class UBGaugeUIController : MonoBehaviour
     {
         if (owner != null)
         {
-            owner.Blackboard.OnTPChanged -= UpdateGauge;
+            owner.BB.OnTPChanged -= UpdateGauge;
         }
     }
 

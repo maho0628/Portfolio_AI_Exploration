@@ -8,7 +8,7 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private HPUIController hpUI;
     private GameState currentState = GameState.Battle;
     private bool isBattleStarted = false;
-    [SerializeField] private UBGaugeUIController playerUBGauge;
+    [SerializeField] private UltimateImpactGaugeUIController playerUltimateImpactGauge;
 
     void Start()
     {
@@ -18,9 +18,9 @@ public class BattleManager : MonoBehaviour
         battleEnded = false;
         hpUI.Init(player, enemy);
         BattleResultData.Reset();
-        player.Blackboard.SetTarget(enemy);
-        enemy.Blackboard.SetTarget(player);
-        playerUBGauge.Init(player);
+        player.BB.SetCurrentTarget(enemy);
+        enemy.BB.SetCurrentTarget(player);
+        playerUltimateImpactGauge.Init(player);
     }
 
     void Update()
@@ -49,13 +49,13 @@ public class BattleManager : MonoBehaviour
             return;
 
         }
-        if (enemy.Blackboard.IsDead)
+        if (enemy.BB.IsDead)
         {
 
 
             EndBattle(ResultType.Victory);
         }
-        else if (player.Blackboard.IsDead)
+        else if (player.BB.IsDead)
         {
 
             EndBattle(ResultType.Defeat);

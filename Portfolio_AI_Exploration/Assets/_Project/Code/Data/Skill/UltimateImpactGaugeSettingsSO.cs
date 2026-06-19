@@ -2,11 +2,11 @@ using UnityEngine;
 
 
 /// <summary>
-/// UBゲージの表示演出に使用する設定を保持するスクリプタブルオブジェクト。
+/// 必殺技ゲージの表示演出に使用する設定を保持するスクリプタブルオブジェクト。
 /// ゲージ更新速度や発光演出の設定を管理する。
 /// </summary>
-[CreateAssetMenu(menuName = "Battle/UI/UBGaugeSettings")]
-public class UBGaugeSettingsSO : ScriptableObject
+[CreateAssetMenu(menuName = "Battle/UI/UltimateImpactGaugeSettings")]
+public class UltimateImpactGaugeSettingsSO : ScriptableObject
 {
 
     /// <summary>

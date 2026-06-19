@@ -28,12 +28,12 @@ public class HPUIController : MonoBehaviour
         this.enemy = enemy;
 
         // 最大HPに応じてバーの長さ決定
-        SetMaxHPBar(playerRoot, player.Blackboard.MaxHP);
-        SetMaxHPBar(enemyRoot, enemy.Blackboard.MaxHP);
+        SetMaxHPBar(playerRoot, player.BB.MaxHP);
+        SetMaxHPBar(enemyRoot, enemy.BB.MaxHP);
 
-        enemyHPText.text = $"{enemy.Blackboard.CurrentHP} / {enemy.Blackboard.MaxHP}";
-        player.Blackboard.OnHPChanged += OnHPChanged;
-        enemy.Blackboard.OnHPChanged += OnHPChanged;
+        enemyHPText.text = $"{enemy.BB.CurrentHP} / {enemy.BB.MaxHP}";
+        player.BB.OnHPChanged += OnHPChanged;
+        enemy.BB.OnHPChanged += OnHPChanged;
 
         UpdateBar(player, playerHPBar);
         UpdateBar(enemy, enemyHPBar);
@@ -67,7 +67,7 @@ public class HPUIController : MonoBehaviour
 
     void UpdateBar(BattleAI ai, Image bar)
     {
-        float ratio = (float)ai.Blackboard.CurrentHP / ai.Blackboard.MaxHP;
+        float ratio = (float)ai.BB.CurrentHP / ai.BB.MaxHP;
         bar.fillAmount = ratio;
     }
 }

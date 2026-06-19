@@ -4,8 +4,8 @@ using UnityEngine;
 /// TP表示用テキストのオブジェクトプール。
 /// TPTextController の生成と再利用を管理する。
 /// </summary>
-public class TPTextPool
-    : ObjectPool<TPTextController>
+public class UltimateGaugeTextPool
+    : ObjectPool<UltimateGaugeTextPoolController>
 {
 
 }

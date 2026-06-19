@@ -10,7 +10,7 @@ public class BattleBlackboard
     /// <summary>
     /// 現在の攻撃対象。
     /// </summary>
-    internal BattleAI Target { get; private set; }
+    internal BattleAI CurrentTarget { get; private set; }
 
     /// <summary>
     /// 戦闘中に変動する現在HP。
@@ -51,12 +51,10 @@ public class BattleBlackboard
     /// <summary>
     /// ブラックボードの初期設定。
     /// </summary>
-    /// <param name="target">このブラックボードを保持するキャラクター</param>
     /// <param name="maxHP">戦闘中の最大HP</param>
     /// <param name="maxTP">戦闘中の最大のスキル命中時に増加するTP（必殺技ゲージ）の最大値</param>
-    internal BattleBlackboard(BattleAI target, int maxHP, int maxTP)
+    internal BattleBlackboard(int maxHP, int maxTP)
     {
-        this.Target = target;
 
         MaxHP = maxHP;
         MaxTP = maxTP;
@@ -69,9 +67,9 @@ public class BattleBlackboard
     /// 攻撃対象を更新する。
     /// </summary>
     /// <param name="target">新しい攻撃対象</param>
-    internal void SetTarget(BattleAI target)
+    internal void SetCurrentTarget(BattleAI target)
     {
-        Target = target;
+        CurrentTarget = target;
     }
 
     /// <summary>
@@ -88,7 +86,7 @@ public class BattleBlackboard
         CurrentHP = Mathf.Max(CurrentHP - amount, 0);
         DebugManager.Log($"HP:{CurrentHP}/{MaxHP}");
 
-        OnHPChanged?.Invoke(Target, CurrentHP, MaxHP);
+        OnHPChanged?.Invoke(CurrentTarget, CurrentHP, MaxHP);
 
     }
 

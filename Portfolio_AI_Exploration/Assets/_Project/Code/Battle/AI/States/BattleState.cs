@@ -2,7 +2,7 @@
 /// 戦闘AIの各状態（Idle / Hold など）の基底クラス。
 /// Unity の仕組みから切り離された思考ロジック層として機能する。
 /// </summary>
-public abstract class BattleStateBase
+public abstract class BattleState
 {
     /// <summary>
     /// このステートを所有する BattleAI。
@@ -14,7 +14,7 @@ public abstract class BattleStateBase
     /// BattleStateBase を初期化する。
     /// </summary>
     /// <param name="owner">このステートを所有する BattleAI。</param>
-    protected BattleStateBase(BattleAI owner)
+    protected BattleState(BattleAI owner)
     {
         this.owner = owner;
     }

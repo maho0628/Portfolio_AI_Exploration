@@ -12,7 +12,7 @@ internal enum SEName
     EnemyHit,
     PlayerDeath,
     EnemyDeath,
-    UBImpact,
+    UltimateImpact,
     SceneTransition,
 
     EnemyEncounter,

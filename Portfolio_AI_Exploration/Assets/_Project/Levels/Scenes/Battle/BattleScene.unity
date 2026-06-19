@@ -844,7 +844,7 @@ MonoBehaviour:
   player: {fileID: 1359461907}
   enemy: {fileID: 1385034022}
   hpUI: {fileID: 1213650600}
-  playerUBGauge: {fileID: 1315142593}
+  playerUltimateImpactGauge: {fileID: 1315142593}
 --- !u!1 &770500728
 GameObject:
   m_ObjectHideFlags: 0
@@ -2116,7 +2116,7 @@ MonoBehaviour:
   damageEffectSettings: {fileID: 11400000, guid: 088eade625feea24ab20be6c26add069, type: 2}
   damageTextPool: {fileID: 1142629603}
   ultimatePresentation: {fileID: 827631437}
-  tpTextPool: {fileID: 245787504}
+  ultimateGaugeIncreaseTextPool: {fileID: 245787504}
 --- !u!95 &1359461908 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5316820693925015571, guid: fdf678a7193c58346a367114b3da57ac, type: 3}

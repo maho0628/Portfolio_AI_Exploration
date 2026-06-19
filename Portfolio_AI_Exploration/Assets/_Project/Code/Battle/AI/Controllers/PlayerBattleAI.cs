@@ -5,14 +5,14 @@ using UnityEngine.InputSystem;
 /// プレイヤーキャラクター用の BattleAI。
 /// プレイヤー入力による手動介入を受け付ける。
 /// </summary>
-public class BattleAITest : BattleAI
+public class PlayerBattleAI : BattleAI
 {
     /// <summary>
     /// TP（必殺技ゲージ）増加量を表示するテキストプール。
     /// </summary>
 
     [SerializeField, Tooltip(" TP（必殺技ゲージ）増加量を表示するテキストプール。")]
-    private TPTextPool tpTextPool;
+    private UltimateGaugeTextPool ultimateGaugeIncreaseTextPool;
 
     private void Start()
     {
@@ -20,7 +20,7 @@ public class BattleAITest : BattleAI
         InputManager.Instance.Bind(
             ActionMapType.Battle,
             InputActionType.Ultimate,
-            OnUltimatePerformed
+            HandleUltimateInput
         );
     }
 
@@ -37,37 +37,37 @@ public class BattleAITest : BattleAI
     /// 必殺技入力を受け取り、手動介入要求を送信する。
     /// </summary>
     /// <param name="_"></param>
-    private void OnUltimatePerformed(InputAction.CallbackContext _)
+    private void HandleUltimateInput(InputAction.CallbackContext _)
     {
-        ReceivePlayerCommand(PlayerCommand.Skill);
+        HandleManualInterventionInput(PlayerCommand.Skill);
     }
 
     /// <summary>
     /// 現在のスキルを実行し、TP（必殺技ゲージ）を加算する。
     /// この派生クラスでは、TP増加量の表示演出を追加で行う。
     /// </summary>
-    internal override void ExecuteSkill()
+    internal override void RunSkill()
     {
-        base.ExecuteSkill();
+        base.RunSkill();
 
-        int tpGain =SkillState.GetCurrentSkill() .TPGainOnHit;
+        int tpGain = SkillExecutionState.GetCurrentSkill().TPGainOnHit;
 
-        ShowTPGain(tpGain);
+        PlayTPGainText(tpGain);
     }
 
     /// <summary>
     /// TP（必殺技ゲージ）の増加量を表示する。
     /// </summary>
     /// <param name="TP">表示するTP（必殺技ゲージ）増加量</param>
-    private void ShowTPGain(int TP)
+    private void PlayTPGainText(int TP)
     {
 
-        if (tpTextPool == null)
+        if (ultimateGaugeIncreaseTextPool == null)
         {
             return;
         }
 
-        var text = tpTextPool.Get();
+        var text = ultimateGaugeIncreaseTextPool.Get();
 
         text.transform.position = transform.position;
 

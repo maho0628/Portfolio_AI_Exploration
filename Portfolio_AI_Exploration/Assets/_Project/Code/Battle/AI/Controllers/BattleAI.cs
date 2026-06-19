@@ -64,7 +64,7 @@ public abstract class BattleAI : MonoBehaviour
     /// <summary>
     /// 死亡処理が実行済みか
     /// </summary>
-    private bool isDead;
+    private bool deathHandled;
 
     #endregion
 
@@ -78,7 +78,7 @@ public abstract class BattleAI : MonoBehaviour
     /// <summary>
     /// 現在どのステートなのか
     /// </summary>
-    private BattleStateBase currentState;
+    private BattleState currentState;
 
     /// <summary>
     /// IdleStateインスタンス
@@ -86,14 +86,14 @@ public abstract class BattleAI : MonoBehaviour
     private IdleState idleState;
 
     /// <summary>
-    /// HoldStateインスタンス
+    /// SkillPreparationStateインスタンス
     /// </summary>
-    private HoldState holdState;
+    private SkillPreparationState skillPreparationState;
 
     /// <summary>
-    /// SkillStateインスタンス
+    /// SkillExecutionStateインスタンス
     /// </summary>
-    private SkillState skillState;
+    private SkillExecutionState skillExecutionState;
 
     #endregion
 
@@ -122,12 +122,12 @@ public abstract class BattleAI : MonoBehaviour
     /// <summary>
     /// スキルループの現在位置
     /// </summary>
-    private int skillIndex = 0;
+    private int skillCycleIndex = 0;
 
     /// <summary>
     /// 現在使用予定のスキルのSO
     /// </summary>
-    private SkillSO pendingSkill;
+    private SkillSO nextSkill;
 
     #endregion
 
@@ -141,12 +141,12 @@ public abstract class BattleAI : MonoBehaviour
     /// <summary>
     /// 介入受付中か
     /// </summary>
-    private bool isInterventionWindowOpen;
+    private bool isManualInterventionEnabled;
 
     /// <summary>
     /// 手動介入の要求がまだ残っているか
     /// </summary>
-    private bool hasManualInterventionRequest;
+    private bool hasInterventionRequest;
 
     #endregion
 
@@ -174,8 +174,7 @@ public abstract class BattleAI : MonoBehaviour
     /// <summary>
     ///ブラックボードインスタンスを取得する
     /// </summary>
-    internal BattleBlackboard Blackboard => blackboard;
-
+    internal BattleBlackboard BB => blackboard;
     /// <summary>
     /// 被弾エフェクトのスクリプタブルオブジェクトインスタンスを取得する
     /// </summary>
@@ -196,14 +195,14 @@ public abstract class BattleAI : MonoBehaviour
     internal IdleState IdleState => idleState;
 
     /// <summary>
-    /// HoldState インスタンスを取得する
+    /// SkillPreparationState インスタンスを取得する
     /// </summary>
-    internal HoldState HoldState => holdState;
+    internal SkillPreparationState SkillPreparationState => skillPreparationState;
 
     /// <summary>
-    /// SkillState インスタンスを取得する
+    /// SkillExecutionState インスタンスを取得する
     /// </summary>
-    internal SkillState SkillState => skillState;
+    internal SkillExecutionState SkillExecutionState => skillExecutionState;
 
     #endregion
 
@@ -241,15 +240,15 @@ public abstract class BattleAI : MonoBehaviour
         }
 
         //  死亡処理の多重実行防止
-        if (!isDead && blackboard.IsDead)
+        if (!deathHandled && blackboard.IsDead)
         {
-            isDead = true;
+            deathHandled = true;
             OnDeath();
             return;
         }
 
         //すでに死亡していたら処理しない
-        if (isDead)
+        if (deathHandled)
         {
             return;
         }
@@ -274,11 +273,11 @@ public abstract class BattleAI : MonoBehaviour
     private void Setup()
     {
         //ブラックボードの初期化
-        blackboard = new BattleBlackboard(this, status.MaxHP, status.TPMax);
+        blackboard = new BattleBlackboard( status.MaxHP, status.TPMax);
 
         idleState = new IdleState(this);
-        holdState = new HoldState(this);
-        skillState = new SkillState(this);
+        skillPreparationState = new SkillPreparationState(this);
+        skillExecutionState = new SkillExecutionState(this);
     }
 
     #endregion
@@ -296,7 +295,7 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     private void InitializeRuntime()
     {
-        isDead = false;
+        deathHandled = false;
         isInitialized = true;
     }
 
@@ -342,7 +341,7 @@ public abstract class BattleAI : MonoBehaviour
     /// State自身は直接他Stateを操作せず、
     /// 必ず owner を通じて遷移を要求する。
     /// </summary>
-    internal void ChangeState(BattleStateBase nextState)
+    internal void SwitchState(BattleState nextState)
     {
         if (nextState == null)
         {
@@ -379,37 +378,37 @@ public abstract class BattleAI : MonoBehaviour
     /// true: スキルの開始に成功した
     /// false: 実行可能なスキルが存在しない
     /// </returns>
-    internal bool TryDecideSkill()
+    internal bool TryDecideNextAction()
     {
-        //UB再生中ならスキル決定しない
+        //必殺技再生中ならスキル決定しない
         if (isPlayingUltimate)
         {
             return false;
         }
 
-        //// SkillState実行中は再度スキル決定しないためのガード
-        if (currentState == SkillState)
+        //// SkillExecutionState実行中は再度スキル決定しないためのガード
+        if (currentState == SkillExecutionState)
         {
             return false;
         }
 
-        //まずUB条件だけを最優先で確定させる
+        //まず必殺技条件だけを最優先で確定させる
         bool gaugeFull = IsGaugeFull();
 
         //ゲージがフルかつそのスキルが必殺技なら
-        if (gaugeFull && TryStartUltimate())
+        if (gaugeFull && TryActivateUltimate())
         {
             return true;
         }
 
-        SkillSO nextSkill = GetNextNormalSkill();
+        SkillSO nextSkill = SelectNextNormalSkill();
 
         if (nextSkill == null)
         {
             return false;
         }
 
-        return StartSkill(nextSkill);
+        return StartSkillExecution(nextSkill);
     }
 
     /// <summary>
@@ -420,7 +419,7 @@ public abstract class BattleAI : MonoBehaviour
     /// true: 必殺技の開始に成功した
     /// false: 実行可能な必殺技が存在しない
     /// </returns>
-    private bool TryStartUltimate()
+    private bool TryActivateUltimate()
     {
         //必殺技スキルを取得する
         var ultimate = GetUltimateSkill();
@@ -437,7 +436,7 @@ public abstract class BattleAI : MonoBehaviour
         ultimatePresentation.Play().Forget();
 
         //必殺技開始をするかどうかを判定
-        return StartSkill(ultimate);
+        return StartSkillExecution(ultimate);
     }
 
     /// <summary>
@@ -454,23 +453,23 @@ public abstract class BattleAI : MonoBehaviour
     }
 
     /// <summary>
-    /// 実行するスキルを設定し、HoldStateへ遷移する。
+    /// 実行するスキルを設定し、SkillPreparationStateへ遷移する。
     /// </summary>
     /// <param name="skill">実行するスキル</param>
     /// <returns>
     /// true: スキルの開始に成功した
     /// false: スキルが設定されていない
     /// </returns>
-    private bool StartSkill(SkillSO skill)
+    private bool StartSkillExecution(SkillSO skill)
     {
         if (skill == null)
         {
             return false;
         }
 
-        SetPendingSkill(skill);
+        SetNextSkill(skill);
 
-        ChangeState(HoldState);
+        SwitchState(SkillPreparationState);
 
         return true;
     }
@@ -479,9 +478,9 @@ public abstract class BattleAI : MonoBehaviour
     /// 次に実行するスキルを設定する。
     /// </summary>
     /// <param name="skill">設定するスキル</param>
-    internal void SetPendingSkill(SkillSO skill)
+    internal void SetNextSkill(SkillSO skill)
     {
-        pendingSkill = skill;
+        nextSkill = skill;
     }
 
     /// <summary>
@@ -492,7 +491,7 @@ public abstract class BattleAI : MonoBehaviour
     /// 次に実行する通常スキル。
     /// 取得できない場合は null。
     /// </returns>
-    private SkillSO GetNextNormalSkill()
+    private SkillSO SelectNextNormalSkill()
     {
         SkillSO nextSkill = null;
 
@@ -500,8 +499,8 @@ public abstract class BattleAI : MonoBehaviour
 
         while (safety < status.SkillLoop.Count)
         {
-            nextSkill = status.SkillLoop[skillIndex];
-            skillIndex = (skillIndex + 1) % status.SkillLoop.Count;
+            nextSkill = status.SkillLoop[skillCycleIndex];
+            skillCycleIndex = (skillCycleIndex + 1) % status.SkillLoop.Count;
             safety++;
 
             //必殺技では無かったらスキルデータを返す
@@ -529,18 +528,18 @@ public abstract class BattleAI : MonoBehaviour
     /// <returns>
     /// 現在使用予定のスキル。設定されていない場合は null。
     /// </returns>    
-    internal SkillSO GetPendingSkill()
+    internal SkillSO GetNextSkill()
     {
-        return pendingSkill;
+        return nextSkill;
     }
 
     /// <summary>
     /// 現在のスキルを実行し、必要な後処理を行う。
     /// </summary>
-    internal virtual void ExecuteSkill()
+    internal virtual void RunSkill()
     {
         // スキル命中時に増加するTP（必殺技ゲージ）を加算する
-        blackboard.AddTP(SkillState.GetCurrentSkill().TPGainOnHit);
+        blackboard.AddTP(SkillExecutionState.GetCurrentSkill().TPGainOnHit);
     }
 
     #endregion
@@ -555,9 +554,9 @@ public abstract class BattleAI : MonoBehaviour
     /// <summary>
     /// 手動介入要求が行われた時に呼ばれる
     /// </summary>
-    private void RequestManualSkill()
+    private void RequestManualIntervention()
     {
-        hasManualInterventionRequest = true;
+        hasInterventionRequest = true;
     }
 
     /// <summary>
@@ -567,17 +566,17 @@ public abstract class BattleAI : MonoBehaviour
     /// true = 要求を消費できた
     /// false = 要求が存在しなかった
     /// </returns>
-    internal bool ConsumeManualSkillRequest()
+    internal bool ConsumeManualInterventionRequest()
     {
         //手動介入の要求がまだ残っていないのであれば
-        if (!hasManualInterventionRequest)
+        if (!hasInterventionRequest)
         {
             //falseを返してその後処理しない
             return false;
         }
 
         //手動介入の要求が残っているので消費
-        hasManualInterventionRequest = false;
+        hasInterventionRequest = false;
 
         return true;
     }
@@ -589,9 +588,9 @@ public abstract class BattleAI : MonoBehaviour
     /// true: 手動介入を受け付ける
     /// false: 手動介入を受け付けない
     /// </param>
-    internal void SetInterventionWindow(bool isOpen)
+    internal void SetManualInterventionEnabled(bool isOpen)
     {
-        isInterventionWindowOpen = isOpen;
+        isManualInterventionEnabled = isOpen;
     }
 
     /// <summary>
@@ -599,7 +598,7 @@ public abstract class BattleAI : MonoBehaviour
     /// </summary>
     /// <param name="command">受信したプレイヤーコマンド</param>
 
-    protected virtual void ReceivePlayerCommand(PlayerCommand command)
+    protected virtual void HandleManualInterventionInput(PlayerCommand command)
     {
         switch (command)
         {
@@ -609,12 +608,12 @@ public abstract class BattleAI : MonoBehaviour
                 BattleResultData.interventionCount++;
 
                 // 成功時のみ予約
-                if (isInterventionWindowOpen)
+                if (isManualInterventionEnabled)
                 {
                     BattleResultData.successCount++;
 
                     //手動介入要求を許可する
-                    RequestManualSkill();
+                    RequestManualIntervention();
 
                     DebugManager.Log("hasManualInterventionRequest = true");
                 }
@@ -639,13 +638,13 @@ public abstract class BattleAI : MonoBehaviour
     internal void DealDamage(SkillSO skill)
     {
         //ブラックボードにターゲットが設定されていなければ処理しない
-        if (Blackboard.Target == null)
+        if (BB.CurrentTarget == null)
         {
             return;
         }
 
         //与えようとしているターゲットが死んでいなければ
-        if (Blackboard.Target.Blackboard.IsDead)
+        if (BB.CurrentTarget.BB.IsDead)
         {
             return;
         }
@@ -654,7 +653,7 @@ public abstract class BattleAI : MonoBehaviour
         if (skill.SkillCategory == SkillType.Ultimate)
         {
             //必殺技時の攻撃SEを流す
-            AudioManager.Instance.PlaySEById(SEName.UBImpact);
+            AudioManager.Instance.PlaySEById(SEName.UltimateImpact);
         }
         else
         {
@@ -666,7 +665,7 @@ public abstract class BattleAI : MonoBehaviour
         int damage = CalculateDamage(skill);
 
         //ターゲットへのダメージ量が決定したのでブラックボードに渡す
-        Blackboard.Target.TakeDamage(damage);
+        BB.CurrentTarget.TakeDamage(damage);
     }
 
     /// <summary>
@@ -678,7 +677,7 @@ public abstract class BattleAI : MonoBehaviour
     private int CalculateDamage(SkillSO skill)
     {
         int attack = status.PhysicalAttack;
-        int defense = Blackboard.Target.status.PhysicalDefense;
+        int defense = BB.CurrentTarget.status.PhysicalDefense;
 
         //// スキル倍率を適用した、理論上の攻撃力を計算
         float scaled = attack * skill.Multiplier;

@@ -4,8 +4,8 @@ using UnityEngine;
 /// TP獲得量の表示とアニメーション再生を行うコントローラー。
 /// FloatingTextControllerBase を継承し、TP表示用のテキストを制御する。
 /// </summary>
-public class TPTextController
-    : FloatingTextControllerBase<TPTextController>
+public class UltimateGaugeTextPoolController
+    : FloatingTextControllerBase<UltimateGaugeTextPoolController>
 {
     /// <summary>
     /// TP獲得量を表示し、アニメーションを再生する。

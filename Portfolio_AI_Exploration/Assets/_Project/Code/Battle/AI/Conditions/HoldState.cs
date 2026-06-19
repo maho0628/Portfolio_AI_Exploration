@@ -3,48 +3,48 @@ using UnityEngine;
 /// <summary>
 /// スキル実行前の待機状態を管理するステート。
 /// プレイヤーからの手動介入を受け付け、実行するスキルを確定する。
-/// 待機時間の経過後、SkillStateへ遷移する。
+/// 待機時間の経過後、SkillExecutionStateへ遷移する。
 /// </summary>
-public class HoldState : BattleStateBase
+public class SkillPreparationState : BattleState
 {
     /// <summary>
     /// スキル発動までの経過時間。
     /// </summary>
-    private float timer;
+    private float skillCastTimer;
 
     /// <summary>
-    /// HoldState を初期化する。
+    /// SkillPreparationState を初期化する。
     /// </summary>
     /// <param name="owner">このステートを所有する BattleAI。</param>
-    internal HoldState(BattleAI owner) : base(owner) { }
+    internal SkillPreparationState(BattleAI owner) : base(owner) { }
 
     /// <summary>
     /// 待機時間を初期化し、手動介入の受付を開始する。
     /// </summary>
     internal override void OnEnter()
     {
-        timer = 0f;
-        owner.SetInterventionWindow(true);
+        skillCastTimer = 0f;
+        owner.SetManualInterventionEnabled(true);
     }
 
     /// <summary>
-    /// 手動介入要求を処理し、待機時間の経過後に実行予定のスキルを SkillState に引き継ぐ。
+    /// 手動介入要求を処理し、待機時間の経過後に実行予定のスキルを SkillExecutionState に引き継ぐ。
     /// 手動介入が成功した場合は、実行予定のスキルを必殺技に更新する。
     /// </summary>
     internal override void Tick()
     {
-        if (owner.ConsumeManualSkillRequest() && owner.IsGaugeFull())
+        if (owner.ConsumeManualInterventionRequest() && owner.IsGaugeFull())
         {
-            owner.SetPendingSkill(owner.GetUltimateSkill());
+            owner.SetNextSkill(owner.GetUltimateSkill());
         }
 
-        timer += Time.deltaTime;
+        skillCastTimer += Time.deltaTime;
 
-        if (timer >= owner.GetPendingSkill().CastTime)
+        if (skillCastTimer >= owner.GetNextSkill().CastTime)
         {
-            owner.SkillState.SetSkill(owner.GetPendingSkill());
+            owner.SkillExecutionState.SetSkill(owner.GetNextSkill());
 
-            owner.ChangeState(owner.SkillState);
+            owner.SwitchState(owner.SkillExecutionState);
         }
 
     }
@@ -55,7 +55,7 @@ public class HoldState : BattleStateBase
     internal override void OnExit()
     {
 
-        owner.SetInterventionWindow(false);
+        owner.SetManualInterventionEnabled(false);
 
     }
 }
