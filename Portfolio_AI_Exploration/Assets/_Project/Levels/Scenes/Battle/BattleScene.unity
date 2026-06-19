@@ -1407,7 +1407,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4172662021808200666, guid: 40a04ee2cb322074f92e5e24f899f413, type: 3}
       propertyPath: m_Name
-      value: TPTextPool
+      value: UltimateGaugeTextPool
       objectReference: {fileID: 0}
     - target: {fileID: 7938714176686038517, guid: 40a04ee2cb322074f92e5e24f899f413, type: 3}
       propertyPath: m_LocalPosition.x
